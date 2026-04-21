@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
 
-const toDateStr = (d) => d.toISOString().slice(0, 10)
+const pad = n => String(n).padStart(2, '0')
+const toDateStr = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
 const todayStr = () => toDateStr(new Date())
 const yesterdayStr = () => toDateStr(new Date(Date.now() - 86400000))
 
@@ -9,6 +10,17 @@ function periodLabel(habit) {
   if (habit.period === 'week') return '1週間'
   if (habit.period === 'month') return '1ヶ月'
   return `${habit.periodDays}日間`
+}
+
+// ── Build day map from logs ──────────────────────────────────────
+function buildDayMap(logs) {
+  const map = {}
+  logs.forEach(log => {
+    if (!map[log.date]) map[log.date] = { completed: 0, skipped: false }
+    if (log.status === 'completed') map[log.date].completed += (log.value || 0)
+    if (log.status === 'skipped') map[log.date].skipped = true
+  })
+  return map
 }
 
 // ── Circle progress ──────────────────────────────────────────────
@@ -32,24 +44,141 @@ function CircleProgress({ percent }) {
   )
 }
 
+// ── Month calendar popup ─────────────────────────────────────────
+function MonthCalendar({ logs, unit, dailyAmount, onClose }) {
+  const now = new Date()
+  const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth())
+
+  const today = todayStr()
+  const dayMap = buildDayMap(logs)
+
+  function prevMonth() {
+    if (month === 0) { setMonth(11); setYear(y => y - 1) }
+    else setMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (month === 11) { setMonth(0); setYear(y => y + 1) }
+    else setMonth(m => m + 1)
+  }
+
+  // Build grid (Monday first)
+  const firstDay = new Date(year, month, 1)
+  const lastDate = new Date(year, month + 1, 0).getDate()
+  const startPad = (firstDay.getDay() + 6) % 7 // Mon=0
+
+  const cells = []
+  for (let i = startPad - 1; i >= 0; i--) {
+    cells.push({ date: toDateStr(new Date(year, month, -i)), inMonth: false })
+  }
+  for (let d = 1; d <= lastDate; d++) {
+    cells.push({ date: toDateStr(new Date(year, month, d)), inMonth: true })
+  }
+  const tail = cells.length % 7
+  if (tail > 0) {
+    for (let d = 1; d <= 7 - tail; d++) {
+      cells.push({ date: toDateStr(new Date(year, month + 1, d)), inMonth: false })
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 px-4" onClick={onClose}>
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm p-5" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors text-lg">‹</button>
+          <h3 className="text-white font-bold text-base">{year}年{month + 1}月</h3>
+          <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors text-lg">›</button>
+        </div>
+
+        {/* Weekday headers */}
+        <div className="grid grid-cols-7 mb-1">
+          {['月','火','水','木','金','土','日'].map(d => (
+            <div key={d} className="text-center text-xs text-slate-500 pb-1">{d}</div>
+          ))}
+        </div>
+
+        {/* Day grid */}
+        <div className="grid grid-cols-7 gap-y-1">
+          {cells.map(({ date, inMonth }) => {
+            const data = dayMap[date]
+            const completed = data?.completed || 0
+            const skippedOnly = (data?.skipped) && completed === 0
+            const isToday = date === today
+            const dayNum = parseInt(date.slice(8), 10)
+
+            let bg = ''
+            let numColor = inMonth ? 'text-slate-400' : 'text-slate-700'
+            let valColor = 'text-white'
+
+            if (inMonth) {
+              if (completed >= dailyAmount) {
+                bg = 'bg-violet-500'
+                numColor = 'text-white'
+              } else if (completed > 0) {
+                bg = 'bg-violet-500/35'
+                numColor = 'text-violet-200'
+                valColor = 'text-violet-200'
+              } else if (skippedOnly) {
+                bg = 'bg-amber-500/25'
+                numColor = 'text-amber-400'
+              }
+            }
+
+            return (
+              <div key={date} className="flex flex-col items-center">
+                <div className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center gap-px ${bg} ${isToday && !bg ? 'ring-1 ring-violet-500' : ''}`}>
+                  <span className={`text-xs font-medium leading-none ${numColor} ${isToday && !bg ? 'text-violet-400' : ''}`}>{dayNum}</span>
+                  {inMonth && completed > 0 && (
+                    <span className={`leading-none font-medium ${valColor}`} style={{ fontSize: '9px' }}>
+                      {completed % 1 === 0 ? completed : completed.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="flex gap-3 mt-4 justify-center flex-wrap">
+          <span className="text-xs text-slate-400 flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-violet-500 inline-block" />目標達成</span>
+          <span className="text-xs text-slate-400 flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-violet-500/35 inline-block" />部分達成</span>
+          <span className="text-xs text-slate-400 flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500/25 inline-block" />スキップ</span>
+        </div>
+
+        <button onClick={onClose} className="w-full mt-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 text-sm font-medium transition-colors">
+          閉じる
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── 7-day bar chart ──────────────────────────────────────────────
-function WeekChart({ logs, unit, dailyAmount }) {
+function WeekChart({ logs, unit, dailyAmount, onOpenCalendar }) {
   const today = todayStr()
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
     return toDateStr(d)
   })
-  const dayData = days.map(date => {
-    const dl = logs.filter(l => l.date === date)
-    const completed = dl.filter(l => l.status === 'completed').reduce((s, l) => s + (l.value || 0), 0)
-    const skipped = completed === 0 && dl.some(l => l.status === 'skipped')
-    return { date, completed, skipped }
-  })
+  const dayMap = buildDayMap(logs)
+  const dayData = days.map(date => ({
+    date,
+    completed: dayMap[date]?.completed || 0,
+    skipped: (dayMap[date]?.skipped) && !(dayMap[date]?.completed),
+  }))
   const maxVal = Math.max(dailyAmount, ...dayData.map(d => d.completed), 1)
 
   return (
     <div className="bg-slate-800/40 rounded-2xl px-4 pt-4 pb-3">
-      <p className="text-xs text-slate-400 font-medium mb-3">直近7日</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-slate-400 font-medium">直近7日</p>
+        <button onClick={onOpenCalendar}
+          className="text-xs text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 px-3 py-1 rounded-full transition-colors">
+          月カレンダー
+        </button>
+      </div>
       <div className="flex gap-1 items-end">
         {dayData.map(({ date, completed, skipped }) => {
           const barH = completed > 0 ? Math.max((completed / maxVal) * 100, 8) : 0
@@ -58,14 +187,12 @@ function WeekChart({ logs, unit, dailyAmount }) {
           return (
             <div key={date} className="flex-1 flex flex-col items-center gap-0.5">
               <span className="text-xs text-violet-300 font-medium" style={{ minHeight: '1rem' }}>
-                {completed > 0 ? completed : ''}
+                {completed > 0 ? (completed % 1 === 0 ? completed : completed.toFixed(1)) : ''}
               </span>
               <div className="w-full flex flex-col justify-end" style={{ height: 56 }}>
                 {completed > 0 ? (
-                  <div
-                    className={`w-full rounded-t transition-all duration-500 ${isToday ? 'bg-violet-400' : 'bg-violet-600/70'}`}
-                    style={{ height: `${barH}%` }}
-                  />
+                  <div className={`w-full rounded-t transition-all duration-500 ${isToday ? 'bg-violet-400' : 'bg-violet-600/70'}`}
+                    style={{ height: `${barH}%` }} />
                 ) : skipped ? (
                   <div className="w-full h-1.5 bg-amber-600/50 rounded" />
                 ) : (
@@ -85,7 +212,7 @@ function WeekChart({ logs, unit, dailyAmount }) {
   )
 }
 
-// ── Log item (with inline edit / delete confirm) ─────────────────
+// ── Log item ─────────────────────────────────────────────────────
 function LogItem({ log, unit, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState(String(log.value ?? ''))
@@ -157,6 +284,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const [isSkip, setIsSkip] = useState(false)
   const [showLogs, setShowLogs] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
   const recorded = sumRecorded(logs)
@@ -182,7 +310,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
-      {/* Delete habit confirm overlay */}
+      {/* Delete habit confirm */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6">
           <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm">
@@ -194,6 +322,16 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
             </div>
           </div>
         </div>
+      )}
+
+      {/* Month calendar */}
+      {showCalendar && (
+        <MonthCalendar
+          logs={logs}
+          unit={unit}
+          dailyAmount={dailyAmount}
+          onClose={() => setShowCalendar(false)}
+        />
       )}
 
       {/* Header */}
@@ -245,15 +383,13 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
 
       {/* 7-day chart */}
       <div className="px-5 mb-5">
-        <WeekChart logs={logs} unit={unit} dailyAmount={dailyAmount} />
+        <WeekChart logs={logs} unit={unit} dailyAmount={dailyAmount} onOpenCalendar={() => setShowCalendar(true)} />
       </div>
 
       {/* Record input */}
       <div className="px-5 mb-5">
         <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 space-y-3">
           <p className="text-sm text-slate-400 font-medium">記録を追加</p>
-
-          {/* Date selector */}
           <div className="grid grid-cols-3 gap-1.5">
             {[{ id: 'today', label: '今日' }, { id: 'yesterday', label: '昨日' }, { id: 'custom', label: '日付選択' }].map(opt => (
               <button key={opt.id} type="button" onClick={() => setDateMode(opt.id)}
@@ -266,8 +402,6 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
             <input type="date" value={customDate} max={today} onChange={e => setCustomDate(e.target.value)}
               className="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500 [color-scheme:dark]" />
           )}
-
-          {/* 記録 / スキップ toggle */}
           <div className="grid grid-cols-2 gap-1.5">
             <button type="button" onClick={() => setIsSkip(false)}
               className={`py-2 rounded-xl text-xs font-medium transition-all ${!isSkip ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
@@ -278,8 +412,6 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
               スキップ
             </button>
           </div>
-
-          {/* Input fields */}
           {!isSkip ? (
             <>
               <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
@@ -305,12 +437,10 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
               onChange={e => setNote(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 placeholder-slate-600" />
           )}
-
           {!isSkip && (
             <input type="text" placeholder="メモ（任意）" value={note} onChange={e => setNote(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500 placeholder-slate-600" />
           )}
-
           <button onClick={handleRecord}
             disabled={!isSkip && (!input || Number(input) <= 0)}
             className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-lg ${isSkip ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20' : 'bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 shadow-violet-500/20'}`}>
@@ -329,7 +459,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
           </button>
           {showLogs && (
             <div className="space-y-2 mt-1">
-              {[...logs].sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : b.createdAt - a.createdAt)).map(log => (
+              {[...logs].sort((a, b) => b.date > a.date ? 1 : b.date < a.date ? -1 : b.createdAt - a.createdAt).map(log => (
                 <LogItem key={log.id} log={log} unit={unit}
                   onUpdate={updates => onUpdateLog(log.id, updates)}
                   onDelete={() => onDeleteLog(log.id)} />
