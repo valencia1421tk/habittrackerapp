@@ -1,10 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#020617"/>
-  <circle cx="256" cy="220" r="110" fill="none" stroke="#8b5cf6" stroke-width="28"/>
-  <circle cx="256" cy="220" r="110" fill="none" stroke="#6366f1" stroke-width="28"
-    stroke-dasharray="691" stroke-dashoffset="173"
-    transform="rotate(-90 256 220)"/>
-  <text x="256" y="232" text-anchor="middle" font-size="72" font-weight="900"
-    font-family="-apple-system, sans-serif" fill="white">習</text>
-  <rect x="156" y="370" width="200" height="16" rx="8" fill="#8b5cf6" opacity="0.6"/>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0533"/>
+      <stop offset="100%" stop-color="#0c0a1e"/>
+    </linearGradient>
+    <linearGradient id="ring1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="ring2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow -->
+  <circle cx="256" cy="180" r="200" fill="#7c3aed" opacity="0.06"/>
+
+  <!-- Outer track -->
+  <circle cx="256" cy="248" r="148" fill="none" stroke="#1e1b4b" stroke-width="28"/>
+  <!-- Outer ring ~80% -->
+  <circle cx="256" cy="248" r="148" fill="none" stroke="url(#ring1)" stroke-width="28"
+    stroke-linecap="round"
+    stroke-dasharray="929.9" stroke-dashoffset="186"
+    transform="rotate(-90 256 248)" filter="url(#glow)"/>
+
+  <!-- Inner track -->
+  <circle cx="256" cy="248" r="100" fill="none" stroke="#1e1b4b" stroke-width="20"/>
+  <!-- Inner ring ~55% -->
+  <circle cx="256" cy="248" r="100" fill="none" stroke="url(#ring2)" stroke-width="20"
+    stroke-linecap="round"
+    stroke-dasharray="628.3" stroke-dashoffset="283"
+    transform="rotate(-90 256 248)" opacity="0.7"/>
+
+  <!-- Checkmark -->
+  <path d="M196 252 L238 294 L326 206"
+    stroke="white" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"
+    fill="none" opacity="0.95"/>
 </svg>
