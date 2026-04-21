@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
 
 const pad = n => String(n).padStart(2, '0')
@@ -45,7 +45,7 @@ function CircleProgress({ percent }) {
 }
 
 // ── Month calendar popup ─────────────────────────────────────────
-function MonthCalendar({ logs, unit, dailyAmount, onClose }) {
+function MonthCalendar({ logs, unit, dailyAmount, onClose, onSelectDate }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -127,14 +127,18 @@ function MonthCalendar({ logs, unit, dailyAmount, onClose }) {
 
             return (
               <div key={date} className="flex flex-col items-center">
-                <div className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center gap-px ${bg} ${isToday && !bg ? 'ring-1 ring-violet-500' : ''}`}>
+                <button
+                  type="button"
+                  onClick={() => inMonth && onSelectDate(date)}
+                  className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center gap-px transition-opacity ${bg} ${isToday && !bg ? 'ring-1 ring-violet-500' : ''} ${inMonth ? 'active:opacity-60' : 'cursor-default'}`}
+                >
                   <span className={`text-xs font-medium leading-none ${numColor} ${isToday && !bg ? 'text-violet-400' : ''}`}>{dayNum}</span>
                   {inMonth && completed > 0 && (
                     <span className={`leading-none font-medium ${valColor}`} style={{ fontSize: '9px' }}>
                       {completed % 1 === 0 ? completed : completed.toFixed(1)}
                     </span>
                   )}
-                </div>
+                </button>
               </div>
             )
           })}
@@ -285,6 +289,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const [showLogs, setShowLogs] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
+  const recordRef = useRef(null)
 
   const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
   const recorded = sumRecorded(logs)
@@ -294,6 +299,13 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const isDone = recorded >= goalTotal
 
   const selectedDate = dateMode === 'today' ? today : dateMode === 'yesterday' ? yesterday : customDate
+
+  function handleSelectDate(date) {
+    setCustomDate(date)
+    setDateMode('custom')
+    setShowCalendar(false)
+    setTimeout(() => recordRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
 
   function handleRecord() {
     if (isSkip) {
@@ -331,6 +343,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
           unit={unit}
           dailyAmount={dailyAmount}
           onClose={() => setShowCalendar(false)}
+          onSelectDate={handleSelectDate}
         />
       )}
 
@@ -387,7 +400,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
       </div>
 
       {/* Record input */}
-      <div className="px-5 mb-5">
+      <div className="px-5 mb-5" ref={recordRef}>
         <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 space-y-3">
           <p className="text-sm text-slate-400 font-medium">記録を追加</p>
           <div className="grid grid-cols-3 gap-1.5">
