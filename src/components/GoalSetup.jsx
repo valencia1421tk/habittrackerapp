@@ -12,6 +12,7 @@ export default function GoalSetup({ onSubmit, onBack }) {
   const [type, setType] = useState('')
   const [unit, setUnit] = useState('')
   const [period, setPeriod] = useState('week')
+  const [customDays, setCustomDays] = useState('')
   const [dailyAmount, setDailyAmount] = useState('')
   const [weeklyDays, setWeeklyDays] = useState('5')
   const [customType, setCustomType] = useState(false)
@@ -22,13 +23,13 @@ export default function GoalSetup({ onSubmit, onBack }) {
     setCustomType(false)
   }
 
-  const periodDays = period === 'week' ? 7 : 30
-  const weeks = period === 'week' ? 1 : 4.285
+  const periodDays = period === 'week' ? 7 : period === 'month' ? 30 : Number(customDays || 0)
+  const weeks = periodDays / 7
   const totalDays = Math.round(weeks * Number(weeklyDays || 0))
   const rawTotal = totalDays * Number(dailyAmount || 0)
   const goalTotal = Math.ceil(rawTotal * 1.15)
 
-  const canSubmit = type && unit && dailyAmount && weeklyDays
+  const canSubmit = type && unit && dailyAmount && weeklyDays && (period !== 'custom' || customDays)
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -112,38 +113,55 @@ export default function GoalSetup({ onSubmit, onBack }) {
         {/* 期間 */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-3">期間</label>
-          <div className="grid grid-cols-2 gap-3">
-            {[{ value: 'week', label: '1週間', sub: '7日間' }, { value: 'month', label: '1ヶ月', sub: '30日間' }].map(opt => (
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'week', label: '1週間', sub: '7日間' },
+              { value: 'month', label: '1ヶ月', sub: '30日間' },
+              { value: 'custom', label: '期間を設定', sub: '日数を入力' },
+            ].map(opt => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => setPeriod(opt.value)}
-                className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                className={`p-3 rounded-2xl border-2 transition-all text-left ${
                   period === opt.value
                     ? 'border-violet-500 bg-violet-500/10'
                     : 'border-slate-700 bg-slate-800/50'
                 }`}
               >
-                <div className="font-semibold text-white">{opt.label}</div>
+                <div className="font-semibold text-white text-sm">{opt.label}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{opt.sub}</div>
               </button>
             ))}
           </div>
+          {period === 'custom' && (
+            <div className="flex items-center gap-2 mt-3 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
+              <input
+                type="number"
+                min="1"
+                placeholder="例：60"
+                value={customDays}
+                onChange={e => setCustomDays(e.target.value)}
+                className="flex-1 bg-transparent text-white text-base font-semibold placeholder-slate-500 focus:outline-none"
+              />
+              <span className="text-slate-400 text-sm whitespace-nowrap">日間</span>
+            </div>
+          )}
         </div>
 
         {/* 1日の量 */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-3">1日の目安量</label>
-          <div className="flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
             <input
               type="number"
               min="1"
               placeholder="0"
               value={dailyAmount}
               onChange={e => setDailyAmount(e.target.value)}
-              className="flex-1 bg-transparent text-white text-lg font-semibold placeholder-slate-500 focus:outline-none"
+              className="flex-1 min-w-0 bg-transparent text-white text-base font-semibold placeholder-slate-500 focus:outline-none"
             />
-            <span className="text-slate-400 text-sm">{unit || '単位'} / 日</span>
+            <span className="text-slate-400 text-sm whitespace-nowrap">{unit || '単位'} / 日</span>
           </div>
         </div>
 

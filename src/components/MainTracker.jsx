@@ -120,28 +120,26 @@ export default function MainTracker({ habit, onRecord, onBack, onDelete }) {
         <div className="px-5 mb-6">
           <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
             <p className="text-sm text-slate-400 mb-3">今日の記録を追加</p>
-            <div className="flex gap-3">
-              <div className="flex-1 flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3">
-                <input
-                  type="number"
-                  min="0.1"
-                  step="any"
-                  placeholder="0"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleRecord()}
-                  className="flex-1 bg-transparent text-white text-lg font-semibold placeholder-slate-600 focus:outline-none"
-                />
-                <span className="text-slate-400 text-sm">{unit}</span>
-              </div>
-              <button
-                onClick={handleRecord}
-                disabled={!input || Number(input) <= 0}
-                className="px-5 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold rounded-xl active:scale-95 transition-all shadow-lg shadow-violet-500/20"
-              >
-                記録
-              </button>
+            <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 mb-3">
+              <input
+                type="number"
+                min="0.1"
+                step="any"
+                placeholder="0"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleRecord()}
+                className="flex-1 min-w-0 bg-transparent text-white text-lg font-semibold placeholder-slate-600 focus:outline-none"
+              />
+              <span className="text-slate-400 text-sm whitespace-nowrap">{unit}</span>
             </div>
+            <button
+              onClick={handleRecord}
+              disabled={!input || Number(input) <= 0}
+              className="w-full py-3 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold rounded-xl active:scale-95 transition-all shadow-lg shadow-violet-500/20"
+            >
+              記録する
+            </button>
 
             {/* Quick add buttons */}
             <div className="flex gap-2 mt-3">
