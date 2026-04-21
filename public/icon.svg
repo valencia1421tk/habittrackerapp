@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#020617"/>
+  <circle cx="256" cy="220" r="110" fill="none" stroke="#8b5cf6" stroke-width="28"/>
+  <circle cx="256" cy="220" r="110" fill="none" stroke="#6366f1" stroke-width="28"
+    stroke-dasharray="691" stroke-dashoffset="173"
+    transform="rotate(-90 256 220)"/>
+  <text x="256" y="232" text-anchor="middle" font-size="72" font-weight="900"
+    font-family="-apple-system, sans-serif" fill="white">習</text>
+  <rect x="156" y="370" width="200" height="16" rx="8" fill="#8b5cf6" opacity="0.6"/>
+</svg>
