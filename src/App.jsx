@@ -5,8 +5,8 @@ import GoalSetup from './components/GoalSetup'
 import MainTracker from './components/MainTracker'
 
 export default function App() {
-  const { habits, addHabit, recordProgress, deleteHabit } = useHabits()
-  const [view, setView] = useState('list') // 'list' | 'setup' | 'tracker'
+  const { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit } = useHabits()
+  const [view, setView] = useState('list')
   const [selectedId, setSelectedId] = useState(null)
 
   const selectedHabit = habits.find(h => h.id === selectedId) ?? null
@@ -36,18 +36,14 @@ export default function App() {
     return (
       <MainTracker
         habit={selectedHabit}
-        onRecord={amount => recordProgress(selectedId, amount)}
+        onAddLog={entry => addLog(selectedId, entry)}
+        onUpdateLog={(logId, updates) => updateLog(selectedId, logId, updates)}
+        onDeleteLog={logId => deleteLog(selectedId, logId)}
         onBack={() => setView('list')}
         onDelete={() => handleDelete(selectedId)}
       />
     )
   }
 
-  return (
-    <HabitList
-      habits={habits}
-      onSelect={handleSelect}
-      onAdd={() => setView('setup')}
-    />
-  )
+  return <HabitList habits={habits} onSelect={handleSelect} onAdd={() => setView('setup')} />
 }

@@ -1,3 +1,11 @@
+import { sumRecorded } from '../hooks/useHabits'
+
+function periodLabel(habit) {
+  if (habit.period === 'week') return '1週間'
+  if (habit.period === 'month') return '1ヶ月'
+  return `${habit.periodDays}日間`
+}
+
 export default function HabitList({ habits, onSelect, onAdd }) {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
@@ -24,8 +32,9 @@ export default function HabitList({ habits, onSelect, onAdd }) {
         ) : (
           <div className="space-y-3">
             {habits.map(habit => {
-              const pct = Math.min(Math.round((habit.recorded / habit.goalTotal) * 100), 100)
-              const isDone = habit.recorded >= habit.goalTotal
+              const recorded = sumRecorded(habit.logs)
+              const pct = Math.min(Math.round((recorded / habit.goalTotal) * 100), 100)
+              const isDone = recorded >= habit.goalTotal
               return (
                 <button
                   key={habit.id}
@@ -36,7 +45,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
                     <div>
                       <p className="text-white font-semibold text-base">{habit.type}</p>
                       <p className="text-slate-400 text-xs mt-0.5">
-                        {habit.period === 'week' ? '1週間' : '1ヶ月'} · 週{habit.weeklyDays}日 · {habit.dailyAmount}{habit.unit}/日
+                        {periodLabel(habit)} · 週{habit.weeklyDays}日 · {habit.dailyAmount}{habit.unit}/日
                       </p>
                     </div>
                     {isDone ? (
@@ -45,16 +54,14 @@ export default function HabitList({ habits, onSelect, onAdd }) {
                       <span className="text-xs text-violet-300 font-bold">{pct}%</span>
                     )}
                   </div>
-
                   <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${isDone ? 'bg-green-500' : 'bg-gradient-to-r from-violet-500 to-indigo-500'}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-
                   <div className="flex justify-between mt-2">
-                    <span className="text-xs text-slate-500">{habit.recorded.toLocaleString()} {habit.unit} 達成</span>
+                    <span className="text-xs text-slate-500">{recorded.toLocaleString()} {habit.unit} 達成</span>
                     <span className="text-xs text-slate-500">目標 {habit.goalTotal.toLocaleString()} {habit.unit}</span>
                   </div>
                 </button>

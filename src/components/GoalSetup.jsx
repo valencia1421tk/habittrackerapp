@@ -34,7 +34,7 @@ export default function GoalSetup({ onSubmit, onBack }) {
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    onSubmit({ type, unit, period, dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays) })
+    onSubmit({ type, unit, period, customDays: Number(customDays) || 0, dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays) })
   }
 
   return (

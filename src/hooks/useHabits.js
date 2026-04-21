@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const STORAGE_KEY = 'habit-tracker-v2'
+const STORAGE_KEY = 'habit-tracker-v3'
 
 function load() {
   try {
@@ -11,11 +11,14 @@ function load() {
   }
 }
 
-function calcGoal({ dailyAmount, weeklyDays, period }) {
-  const weeks = period === 'week' ? 1 : 4.285
+function calcGoal({ dailyAmount, weeklyDays, periodDays }) {
+  const weeks = periodDays / 7
   const totalDays = Math.round(weeks * weeklyDays)
-  const rawTotal = totalDays * dailyAmount
-  return Math.ceil(rawTotal * 1.15)
+  return Math.ceil(totalDays * dailyAmount * 1.15)
+}
+
+export function sumRecorded(logs) {
+  return logs.reduce((sum, l) => l.status === 'completed' ? sum + (l.value || 0) : sum, 0)
 }
 
 export function useHabits() {
@@ -25,17 +28,15 @@ export function useHabits() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(habits))
   }, [habits])
 
-  function addHabit({ type, unit, period, dailyAmount, weeklyDays }) {
-    const goalTotal = calcGoal({ dailyAmount, weeklyDays, period })
+  function addHabit({ type, unit, period, customDays, dailyAmount, weeklyDays }) {
+    const periodDays = period === 'week' ? 7 : period === 'month' ? 30 : Number(customDays || 0)
+    const goalTotal = calcGoal({ dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), periodDays })
     const habit = {
       id: Date.now().toString(),
-      type,
-      unit,
-      period,
+      type, unit, period, periodDays,
       dailyAmount: Number(dailyAmount),
       weeklyDays: Number(weeklyDays),
       goalTotal,
-      recorded: 0,
       logs: [],
       createdAt: Date.now(),
     }
@@ -43,16 +44,41 @@ export function useHabits() {
     return habit.id
   }
 
-  function recordProgress(id, amount) {
+  function addLog(habitId, { date, value, status, note }) {
+    const log = {
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
+      date,
+      value: status === 'completed' ? Number(value) : null,
+      status,
+      note: note || '',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
     setHabits(prev => prev.map(h =>
-      h.id !== id ? h : {
+      h.id !== habitId ? h : { ...h, logs: [log, ...h.logs] }
+    ))
+  }
+
+  function updateLog(habitId, logId, { value, status, note }) {
+    setHabits(prev => prev.map(h =>
+      h.id !== habitId ? h : {
         ...h,
-        recorded: h.recorded + Number(amount),
-        logs: [
-          { amount: Number(amount), date: new Date().toLocaleString('ja-JP') },
-          ...h.logs,
-        ],
+        logs: h.logs.map(l =>
+          l.id !== logId ? l : {
+            ...l,
+            value: status === 'completed' ? Number(value) : null,
+            status,
+            note: note || '',
+            updatedAt: Date.now(),
+          }
+        ),
       }
+    ))
+  }
+
+  function deleteLog(habitId, logId) {
+    setHabits(prev => prev.map(h =>
+      h.id !== habitId ? h : { ...h, logs: h.logs.filter(l => l.id !== logId) }
     ))
   }
 
@@ -60,5 +86,5 @@ export function useHabits() {
     setHabits(prev => prev.filter(h => h.id !== id))
   }
 
-  return { habits, addHabit, recordProgress, deleteHabit }
+  return { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit }
 }
