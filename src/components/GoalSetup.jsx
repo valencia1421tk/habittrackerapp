@@ -8,14 +8,16 @@ const PRESETS = [
   { label: '瞑想', unit: '分' },
 ]
 
-export default function GoalSetup({ onSubmit, onBack }) {
-  const [type, setType] = useState('')
-  const [unit, setUnit] = useState('')
-  const [period, setPeriod] = useState('week')
-  const [customDays, setCustomDays] = useState('')
-  const [dailyAmount, setDailyAmount] = useState('')
-  const [weeklyDays, setWeeklyDays] = useState('5')
-  const [customType, setCustomType] = useState(false)
+export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel }) {
+  const iv = initialValues || {}
+  const isPreset = PRESETS.some(p => p.label === iv.type)
+  const [type, setType] = useState(iv.type || '')
+  const [unit, setUnit] = useState(iv.unit || '')
+  const [period, setPeriod] = useState(iv.period || 'week')
+  const [customDays, setCustomDays] = useState(iv.customDays ? String(iv.customDays) : '')
+  const [dailyAmount, setDailyAmount] = useState(iv.dailyAmount ? String(iv.dailyAmount) : '')
+  const [weeklyDays, setWeeklyDays] = useState(iv.weeklyDays ? String(iv.weeklyDays) : '5')
+  const [customType, setCustomType] = useState(!!iv.type && !isPreset)
 
   function handlePreset(preset) {
     setType(preset.label)
@@ -211,7 +213,7 @@ export default function GoalSetup({ onSubmit, onBack }) {
           disabled={!canSubmit}
           className="w-full py-4 rounded-2xl font-bold text-base transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 active:scale-95 text-white shadow-lg shadow-violet-500/25"
         >
-          目標を開始する
+          {submitLabel || '目標を開始する'}
         </button>
       </form>
     </div>

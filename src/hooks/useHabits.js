@@ -103,6 +103,7 @@ export function useHabits() {
         dailyAmount: old.dailyAmount, weeklyDays: old.weeklyDays,
         goalTotal: old.goalTotal,
         logs: [],
+        inheritedLogs: [...(old.inheritedLogs || []), ...old.logs],
         createdAt: Date.now(),
       }
       return [
@@ -112,5 +113,28 @@ export function useHabits() {
     })
   }
 
-  return { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit, archiveHabit, renewHabit }
+  function renewHabitWithSettings(id, { type, unit, period, customDays, dailyAmount, weeklyDays }) {
+    setHabits(prev => {
+      const old = prev.find(h => h.id === id)
+      if (!old) return prev
+      const periodDays = period === 'week' ? 7 : period === 'month' ? 30 : Number(customDays || 0)
+      const goalTotal = calcGoal({ dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), periodDays })
+      const renewed = {
+        id: Date.now().toString(),
+        type, unit, period, periodDays,
+        dailyAmount: Number(dailyAmount),
+        weeklyDays: Number(weeklyDays),
+        goalTotal,
+        logs: [],
+        inheritedLogs: [...(old.inheritedLogs || []), ...old.logs],
+        createdAt: Date.now(),
+      }
+      return [
+        ...prev.map(h => h.id !== id ? h : { ...h, archived: true, archivedAt: Date.now() }),
+        renewed,
+      ]
+    })
+  }
+
+  return { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit, archiveHabit, renewHabit, renewHabitWithSettings }
 }

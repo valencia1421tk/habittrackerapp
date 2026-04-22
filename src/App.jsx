@@ -5,11 +5,13 @@ import GoalSetup from './components/GoalSetup'
 import MainTracker from './components/MainTracker'
 
 export default function App() {
-  const { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit, archiveHabit, renewHabit } = useHabits()
+  const { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit, archiveHabit, renewHabit, renewHabitWithSettings } = useHabits()
   const [view, setView] = useState('list')
   const [selectedId, setSelectedId] = useState(null)
+  const [renewingFromId, setRenewingFromId] = useState(null)
 
   const selectedHabit = habits.find(h => h.id === selectedId) ?? null
+  const renewingHabit = habits.find(h => h.id === renewingFromId) ?? null
 
   function handleAdd(formData) {
     const id = addHabit(formData)
@@ -28,15 +30,44 @@ export default function App() {
     setSelectedId(null)
   }
 
-  function handleRenewAndNavigate(id) {
+  function handleRenewSame(id) {
     renewHabit(id)
-    // We'll just go to list and let the user tap the new card
+    setView('list')
+    setSelectedId(null)
+  }
+
+  function handleRenewSetup(id) {
+    setRenewingFromId(id)
+    setView('renew-setup')
+  }
+
+  function handleRenewWithSettings(formData) {
+    renewHabitWithSettings(renewingFromId, formData)
+    setRenewingFromId(null)
     setView('list')
     setSelectedId(null)
   }
 
   if (view === 'setup') {
     return <GoalSetup onSubmit={handleAdd} onBack={() => setView('list')} />
+  }
+
+  if (view === 'renew-setup' && renewingHabit) {
+    return (
+      <GoalSetup
+        onSubmit={handleRenewWithSettings}
+        onBack={() => { setRenewingFromId(null); setView('tracker') }}
+        initialValues={{
+          type: renewingHabit.type,
+          unit: renewingHabit.unit,
+          period: renewingHabit.period,
+          customDays: renewingHabit.period === 'custom' ? renewingHabit.periodDays : '',
+          dailyAmount: renewingHabit.dailyAmount,
+          weeklyDays: renewingHabit.weeklyDays,
+        }}
+        submitLabel="この設定で再開する"
+      />
+    )
   }
 
   if (view === 'tracker' && selectedHabit) {
@@ -49,7 +80,8 @@ export default function App() {
         onBack={() => setView('list')}
         onDelete={() => handleDelete(selectedId)}
         onArchive={() => { archiveHabit(selectedId); setView('list') }}
-        onRenew={() => handleRenewAndNavigate(selectedId)}
+        onRenewSame={() => handleRenewSame(selectedId)}
+        onRenewSetup={() => handleRenewSetup(selectedId)}
       />
     )
   }

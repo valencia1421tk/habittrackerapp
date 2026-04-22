@@ -277,7 +277,7 @@ function LogItem({ log, unit, onUpdate, onDelete }) {
 }
 
 // ── Main component ───────────────────────────────────────────────
-export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog, onBack, onDelete, onArchive, onRenew }) {
+export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog, onBack, onDelete, onArchive, onRenewSame, onRenewSetup }) {
   const today = todayStr()
   const yesterday = yesterdayStr()
 
@@ -293,6 +293,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const recordRef = useRef(null)
 
   const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
+  const allLogs = [...logs, ...(habit.inheritedLogs || [])]
   const recorded = sumRecorded(logs)
   const remaining = Math.max(goalTotal - recorded, 0)
   const percent = recorded / goalTotal
@@ -356,11 +357,11 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
       {/* Month calendar */}
       {showCalendar && (
         <MonthCalendar
-          logs={logs}
+          logs={allLogs}
           unit={unit}
           dailyAmount={dailyAmount}
           onClose={() => setShowCalendar(false)}
-          onSelectDate={handleSelectDate}
+          onSelectDate={isArchived ? () => setShowCalendar(false) : handleSelectDate}
         />
       )}
 
@@ -371,7 +372,12 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
             ← 一覧に戻る
           </button>
           {isArchived ? (
-            <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg">アーカイブ済み</span>
+            <div className="flex gap-2">
+              <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg">アーカイブ済み</span>
+              <button onClick={() => setDeleteConfirm(true)} className="text-xs text-red-500/70 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg bg-slate-800">
+                削除
+              </button>
+            </div>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => setArchiveConfirm(true)} className="text-xs text-slate-400 hover:text-slate-200 transition-colors px-3 py-1.5 rounded-lg bg-slate-800">
@@ -422,7 +428,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
 
       {/* 7-day chart */}
       <div className="px-5 mb-5">
-        <WeekChart logs={logs} unit={unit} dailyAmount={dailyAmount} onOpenCalendar={() => setShowCalendar(true)} />
+        <WeekChart logs={allLogs} unit={unit} dailyAmount={dailyAmount} onOpenCalendar={() => setShowCalendar(true)} />
       </div>
 
       {/* Achievement CTA — shown when goal is met and habit is still active */}
@@ -430,17 +436,21 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
         <div className="px-5 mb-5">
           <div className="bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-500/30 rounded-2xl p-5">
             <p className="text-green-400 font-bold text-base mb-1">🎉 目標達成！</p>
-            <p className="text-slate-400 text-sm mb-4">記録を保存してアーカイブするか、同じ設定で新しい期間を始めましょう。</p>
-            <div className="flex gap-3">
-              <button onClick={() => setArchiveConfirm(true)}
-                className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-white text-sm font-medium transition-colors">
-                アーカイブ
-              </button>
-              <button onClick={onRenew}
+            <p className="text-slate-400 text-sm mb-4">記録を保存してアーカイブするか、新しい期間を始めましょう。</p>
+            <div className="flex gap-2 mb-2">
+              <button onClick={onRenewSame}
                 className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-green-500/25 active:scale-95 transition-transform">
-                新しい期間を開始
+                同じ設定で再開
+              </button>
+              <button onClick={onRenewSetup}
+                className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-white text-sm font-medium transition-colors">
+                設定を変更して再開
               </button>
             </div>
+            <button onClick={() => setArchiveConfirm(true)}
+              className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 text-sm transition-colors">
+              アーカイブのみ
+            </button>
           </div>
         </div>
       )}
@@ -448,12 +458,18 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
       {/* Archived banner */}
       {isArchived && (
         <div className="px-5 mb-5">
-          <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 text-center">
-            <p className="text-slate-400 text-sm mb-3">この習慣はアーカイブされています。</p>
-            <button onClick={onRenew}
-              className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-violet-500/25 active:scale-95 transition-transform">
-              同じ設定で再開する
-            </button>
+          <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5">
+            <p className="text-slate-400 text-sm mb-3 text-center">この習慣はアーカイブされています。</p>
+            <div className="flex gap-2">
+              <button onClick={onRenewSame}
+                className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-violet-500/25 active:scale-95 transition-transform">
+                同じ設定で再開
+              </button>
+              <button onClick={onRenewSetup}
+                className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-white text-sm font-medium transition-colors">
+                設定を変更して再開
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -522,20 +538,37 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
       </div>}
 
       {/* Log history */}
-      {logs.length > 0 && (
+      {allLogs.length > 0 && (
         <div className="px-5 pb-10">
           <button onClick={() => setShowLogs(v => !v)}
             className="w-full flex items-center justify-between py-3 text-sm text-slate-400 hover:text-slate-200 transition-colors">
-            <span>記録履歴 ({logs.length}件)</span>
+            <span>記録履歴 ({allLogs.length}件)</span>
             <span className={`transition-transform text-xs ${showLogs ? 'rotate-180' : ''}`}>▼</span>
           </button>
           {showLogs && (
             <div className="space-y-2 mt-1">
-              {[...logs].sort((a, b) => b.date > a.date ? 1 : b.date < a.date ? -1 : b.createdAt - a.createdAt).map(log => (
-                <LogItem key={log.id} log={log} unit={unit}
-                  onUpdate={updates => onUpdateLog(log.id, updates)}
-                  onDelete={() => onDeleteLog(log.id)} />
-              ))}
+              {[...allLogs].sort((a, b) => b.date > a.date ? 1 : b.date < a.date ? -1 : b.createdAt - a.createdAt).map(log => {
+                const isInherited = !(logs.find(l => l.id === log.id))
+                return isInherited ? (
+                  <div key={log.id} className="flex items-center justify-between py-2.5 px-4 bg-slate-800/30 rounded-xl opacity-60">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${log.status === 'completed' ? 'bg-violet-500/15 text-violet-400' : 'bg-amber-500/15 text-amber-500'}`}>
+                          {log.status === 'completed' ? '記録' : 'スキップ'}
+                        </span>
+                        <span className="text-slate-500 text-xs">{log.date}</span>
+                        {log.status === 'completed' && <span className="text-slate-400 text-sm font-semibold">+{log.value} {unit}</span>}
+                        <span className="text-xs text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded">過去の記録</span>
+                      </div>
+                      {log.note && <p className="text-slate-600 text-xs mt-0.5 truncate">{log.note}</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <LogItem key={log.id} log={log} unit={unit}
+                    onUpdate={updates => onUpdateLog(log.id, updates)}
+                    onDelete={() => onDeleteLog(log.id)} />
+                )
+              })}
             </div>
           )}
         </div>
