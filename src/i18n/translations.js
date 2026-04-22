@@ -1,6 +1,7 @@
 export const LANGUAGES = [
   { code: 'ja', label: '日本語' },
   { code: 'en', label: 'English' },
+  { code: 'th', label: 'ภาษาไทย' },
 ]
 
 export const translations = {
@@ -298,6 +299,156 @@ export const translations = {
       { label: 'Vocabulary', unit: 'words' },
       { label: 'Reading', unit: 'pages' },
       { label: 'Meditation', unit: 'min' },
+    ],
+  },
+
+  th: {
+    // Greetings
+    greeting_morning: 'อรุณสวัสดิ์',
+    greeting_afternoon: 'สวัสดีตอนบ่าย',
+    greeting_evening: 'สวัสดีตอนเย็น',
+
+    // Quote widget
+    quote_add: '+ เพิ่มคำคม',
+    quote_placeholder: 'ใส่คำคมหรือคติประจำใจ…',
+    quote_save: 'บันทึก',
+
+    // HabitList
+    page_title: 'นิสัยที่กำลังทำ',
+    stat_count: 'นิสัย',
+    stat_count_unit: '',
+    stat_avg: 'ความคืบหน้าเฉลี่ย',
+    stat_done: 'สำเร็จแล้ว',
+    stat_done_unit: '',
+    empty_title: 'เพิ่มนิสัยแรกของคุณ',
+    empty_desc: 'แตะปุ่ม + เพื่อตั้งเป้าหมาย',
+    empty_btn: 'เพิ่มนิสัยแรก',
+    no_active: 'ไม่มีนิสัยที่กำลังทำ',
+    add_new: 'เพิ่มนิสัยใหม่',
+    badge_done: 'สำเร็จ',
+    badge_archived: 'เก็บถาวร',
+    label_achieved: 'ทำแล้ว',
+    label_remaining: 'เหลือ',
+    archive_section: (n) => `เก็บถาวร (${n})`,
+
+    // Period / frequency labels
+    period_week: '1 สัปดาห์',
+    period_month: '1 เดือน',
+    period_custom: (n) => `${n} วัน`,
+    weekly_days: (n) => `${n} วัน/สัปดาห์`,
+    per_day: (n, unit) => `${n} ${unit}/วัน`,
+
+    // MainTracker header
+    back: '← กลับ',
+    archived_badge: 'เก็บถาวรแล้ว',
+    btn_archive: 'เก็บถาวร',
+    btn_delete: 'ลบ',
+
+    // Delete confirm
+    delete_title: 'ลบนิสัยนี้?',
+    delete_desc: (type) => `"${type}" และบันทึกทั้งหมดจะถูกลบถาวร`,
+    btn_cancel: 'ยกเลิก',
+    btn_delete_confirm: 'ลบ',
+
+    // Archive confirm
+    archive_confirm_title: 'เก็บถาวรนิสัยนี้?',
+    archive_confirm_desc: (type) => `"${type}" จะถูกเก็บถาวร บันทึกยังคงอยู่และดูได้ที่ด้านล่างของรายการ`,
+    btn_archive_confirm: 'เก็บถาวร',
+
+    // Circle stats
+    stat_remaining: 'เหลือ',
+    stat_achieved2: 'ทำแล้ว',
+    stat_goal: 'เป้าหมาย',
+    stat_progress: 'ความคืบหน้า',
+    stat_done_label: 'สำเร็จ!',
+
+    // WeekChart
+    chart_week: '7 วันล่าสุด',
+    chart_calendar_btn: 'ปฏิทินรายเดือน',
+    chart_record_legend: 'บันทึก',
+    chart_skip_legend: 'ข้าม',
+    chart_locale: 'th-TH',
+
+    // Calendar
+    cal_close: 'ปิด',
+    cal_legend_done: 'ถึงเป้าหมาย',
+    cal_legend_partial: 'บางส่วน',
+    cal_legend_skip: 'ข้าม',
+    cal_weekdays: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
+    cal_title: (y, m) => {
+      const names = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+      return `${names[m - 1]} ${y}`
+    },
+
+    // Achievement CTA
+    cta_title: '🎉 ถึงเป้าหมายแล้ว!',
+    cta_desc: 'เก็บถาวรหรือเริ่มช่วงเวลาใหม่',
+    btn_renew_same: 'เริ่มใหม่ (การตั้งค่าเดิม)',
+    btn_renew_setup: 'เริ่มใหม่ (เปลี่ยนการตั้งค่า)',
+    btn_archive_only: 'เก็บถาวรอย่างเดียว',
+
+    // Archived banner
+    archived_desc: 'นิสัยนี้ถูกเก็บถาวรแล้ว',
+
+    // Record input
+    record_title: 'เพิ่มบันทึก',
+    date_today: 'วันนี้',
+    date_yesterday: 'เมื่อวาน',
+    date_custom: 'เลือกวันที่',
+    mode_record: 'บันทึก',
+    mode_skip: 'ข้าม',
+    skip_reason_placeholder: 'เหตุผล (ไม่บังคับ): พักผ่อน, ป่วย, เดินทาง…',
+    note_placeholder: 'บันทึก (ไม่บังคับ)',
+    btn_record: 'บันทึก',
+    btn_skip_record: 'บันทึกว่าข้าม',
+
+    // Log history
+    log_history: (n) => `ประวัติ (${n})`,
+    log_record: 'บันทึก',
+    log_skip: 'ข้าม',
+    log_inherited: 'บันทึกเก่า',
+    log_edit: 'แก้ไข',
+    log_delete: 'ลบ',
+    log_delete_confirm: 'ลบบันทึกนี้?',
+    log_cancel: 'ยกเลิก',
+    edit_save: 'บันทึก',
+    edit_cancel: 'ยกเลิก',
+
+    // GoalSetup
+    setup_back: '← กลับ',
+    setup_title: 'ตั้งเป้าหมาย',
+    setup_type_label: 'ประเภทนิสัย',
+    setup_custom_btn: 'กำหนดเอง',
+    setup_custom_placeholder: 'เช่น วิดพื้น',
+    setup_unit_placeholder: 'หน่วย',
+    setup_unit_label: 'หน่วย:',
+    setup_period_label: 'ระยะเวลา',
+    setup_period_week: '1 สัปดาห์',
+    setup_period_week_sub: '7 วัน',
+    setup_period_month: '1 เดือน',
+    setup_period_month_sub: '30 วัน',
+    setup_period_custom: 'กำหนดเอง',
+    setup_period_custom_sub: 'ใส่จำนวนวัน',
+    setup_days_placeholder: 'เช่น 60',
+    setup_days_unit: 'วัน',
+    setup_daily_label: 'เป้าหมายต่อวัน',
+    setup_weekly_label: 'ความถี่ต่อสัปดาห์',
+    setup_weekly_display: (n) => `${n} วัน / สัปดาห์`,
+    setup_preview_title: 'คำนวณอัตโนมัติ',
+    setup_preview_days: 'วันที่ทำ',
+    setup_preview_days_unit: '',
+    setup_preview_required: 'ที่ต้องการ (×1.15)',
+    setup_preview_goal: 'เป้าหมาย',
+    setup_submit: 'เริ่มนิสัย',
+    setup_renew_submit: 'เริ่มใหม่ด้วยการตั้งค่านี้',
+
+    // Presets
+    presets: [
+      { label: 'ออกกำลังกาย', unit: 'ครั้ง' },
+      { label: 'วิ่ง', unit: 'กม.' },
+      { label: 'ท่องศัพท์', unit: 'คำ' },
+      { label: 'อ่านหนังสือ', unit: 'หน้า' },
+      { label: 'นั่งสมาธิ', unit: 'นาที' },
     ],
   },
 }
