@@ -1,16 +1,11 @@
 import { useState } from 'react'
-
-const PRESETS = [
-  { label: '筋トレ', unit: '回' },
-  { label: 'ランニング', unit: 'km' },
-  { label: '単語暗記', unit: '個' },
-  { label: '読書', unit: 'ページ' },
-  { label: '瞑想', unit: '分' },
-]
+import { useLang } from '../i18n/LanguageContext'
 
 export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel }) {
+  const { t } = useLang()
   const iv = initialValues || {}
-  const isPreset = PRESETS.some(p => p.label === iv.type)
+  const isPreset = t.presets.some(p => p.label === iv.type)
+
   const [type, setType] = useState(iv.type || '')
   const [unit, setUnit] = useState(iv.unit || '')
   const [period, setPeriod] = useState(iv.period || 'week')
@@ -43,19 +38,19 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
     <div className="min-h-screen bg-slate-950 flex flex-col">
       <div className="px-5 pt-12 pb-6">
         <button onClick={onBack} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm mb-4 transition-colors">
-          <span>←</span> 戻る
+          {t.setup_back}
         </button>
         <p className="text-slate-400 text-sm font-medium tracking-widest uppercase">Habit Tracker</p>
-        <h1 className="text-2xl font-bold text-white mt-1">目標を設定する</h1>
+        <h1 className="text-2xl font-bold text-white mt-1">{t.setup_title}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex-1 px-5 pb-8 space-y-6">
 
         {/* 種類 */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">習慣の種類</label>
+          <label className="block text-sm font-medium text-slate-300 mb-3">{t.setup_type_label}</label>
           <div className="flex flex-wrap gap-2 mb-3">
-            {PRESETS.map(p => (
+            {t.presets.map(p => (
               <button
                 key={p.label}
                 type="button"
@@ -76,7 +71,7 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
                 customType ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }`}
             >
-              カスタム
+              {t.setup_custom_btn}
             </button>
           </div>
 
@@ -84,14 +79,14 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="例：腕立て伏せ"
+                placeholder={t.setup_custom_placeholder}
                 value={type}
                 onChange={e => setType(e.target.value)}
                 className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-colors"
               />
               <input
                 type="text"
-                placeholder="単位"
+                placeholder={t.setup_unit_placeholder}
                 value={unit}
                 onChange={e => setUnit(e.target.value)}
                 className="w-24 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-colors"
@@ -101,7 +96,7 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
 
           {!customType && type && (
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-violet-400 text-sm">単位：</span>
+              <span className="text-violet-400 text-sm">{t.setup_unit_label}</span>
               <input
                 type="text"
                 value={unit}
@@ -114,12 +109,12 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
 
         {/* 期間 */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">期間</label>
+          <label className="block text-sm font-medium text-slate-300 mb-3">{t.setup_period_label}</label>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { value: 'week', label: '1週間', sub: '7日間' },
-              { value: 'month', label: '1ヶ月', sub: '30日間' },
-              { value: 'custom', label: '期間を設定', sub: '日数を入力' },
+              { value: 'week', label: t.setup_period_week, sub: t.setup_period_week_sub },
+              { value: 'month', label: t.setup_period_month, sub: t.setup_period_month_sub },
+              { value: 'custom', label: t.setup_period_custom, sub: t.setup_period_custom_sub },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -141,19 +136,19 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
               <input
                 type="number"
                 min="1"
-                placeholder="例：60"
+                placeholder={t.setup_days_placeholder}
                 value={customDays}
                 onChange={e => setCustomDays(e.target.value)}
                 className="flex-1 bg-transparent text-white text-base font-semibold placeholder-slate-500 focus:outline-none"
               />
-              <span className="text-slate-400 text-sm whitespace-nowrap">日間</span>
+              <span className="text-slate-400 text-sm whitespace-nowrap">{t.setup_days_unit}</span>
             </div>
           )}
         </div>
 
         {/* 1日の量 */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">1日の目安量</label>
+          <label className="block text-sm font-medium text-slate-300 mb-3">{t.setup_daily_label}</label>
           <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
             <input
               type="number"
@@ -163,13 +158,13 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
               onChange={e => setDailyAmount(e.target.value)}
               className="flex-1 min-w-0 bg-transparent text-white text-base font-semibold placeholder-slate-500 focus:outline-none"
             />
-            <span className="text-slate-400 text-sm whitespace-nowrap">{unit || '単位'} / 日</span>
+            <span className="text-slate-400 text-sm whitespace-nowrap">{unit || t.setup_unit_placeholder} / {t.setup_days_unit === '日間' ? '日' : 'day'}</span>
           </div>
         </div>
 
         {/* 週の頻度 */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">週の頻度</label>
+          <label className="block text-sm font-medium text-slate-300 mb-3">{t.setup_weekly_label}</label>
           <div className="flex gap-2 justify-between">
             {[1,2,3,4,5,6,7].map(d => (
               <button
@@ -186,23 +181,23 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
               </button>
             ))}
           </div>
-          <p className="text-xs text-slate-500 mt-2 text-center">週 {weeklyDays} 日</p>
+          <p className="text-xs text-slate-500 mt-2 text-center">{t.setup_weekly_display(weeklyDays)}</p>
         </div>
 
-        {/* 計算プレビュー */}
+        {/* プレビュー */}
         {canSubmit && (
           <div className="bg-gradient-to-br from-violet-900/40 to-indigo-900/40 border border-violet-700/40 rounded-2xl p-4 space-y-2">
-            <p className="text-xs font-medium text-violet-300 uppercase tracking-widest">自動計算結果</p>
+            <p className="text-xs font-medium text-violet-300 uppercase tracking-widest">{t.setup_preview_title}</p>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-400">実施日数</span>
-              <span className="text-white font-medium">{totalDays} 日</span>
+              <span className="text-slate-400">{t.setup_preview_days}</span>
+              <span className="text-white font-medium">{totalDays} {t.setup_preview_days_unit}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-400">必要量 (×1.15)</span>
+              <span className="text-slate-400">{t.setup_preview_required}</span>
               <span className="text-slate-300">{rawTotal} → {goalTotal} {unit}</span>
             </div>
             <div className="border-t border-violet-700/40 pt-2 flex justify-between">
-              <span className="text-white font-semibold">目標値</span>
+              <span className="text-white font-semibold">{t.setup_preview_goal}</span>
               <span className="text-violet-300 font-bold text-lg">{goalTotal} {unit}</span>
             </div>
           </div>
@@ -213,7 +208,7 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
           disabled={!canSubmit}
           className="w-full py-4 rounded-2xl font-bold text-base transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 active:scale-95 text-white shadow-lg shadow-violet-500/25"
         >
-          {submitLabel || '目標を開始する'}
+          {submitLabel || t.setup_submit}
         </button>
       </form>
     </div>
