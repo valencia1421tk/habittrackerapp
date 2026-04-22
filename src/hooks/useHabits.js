@@ -86,5 +86,31 @@ export function useHabits() {
     setHabits(prev => prev.filter(h => h.id !== id))
   }
 
-  return { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit }
+  function archiveHabit(id) {
+    setHabits(prev => prev.map(h =>
+      h.id !== id ? h : { ...h, archived: true, archivedAt: Date.now() }
+    ))
+  }
+
+  function renewHabit(id) {
+    setHabits(prev => {
+      const old = prev.find(h => h.id === id)
+      if (!old) return prev
+      const renewed = {
+        id: Date.now().toString(),
+        type: old.type, unit: old.unit,
+        period: old.period, periodDays: old.periodDays,
+        dailyAmount: old.dailyAmount, weeklyDays: old.weeklyDays,
+        goalTotal: old.goalTotal,
+        logs: [],
+        createdAt: Date.now(),
+      }
+      return [
+        ...prev.map(h => h.id !== id ? h : { ...h, archived: true, archivedAt: Date.now() }),
+        renewed,
+      ]
+    })
+  }
+
+  return { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit, archiveHabit, renewHabit }
 }

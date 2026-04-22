@@ -5,7 +5,7 @@ import GoalSetup from './components/GoalSetup'
 import MainTracker from './components/MainTracker'
 
 export default function App() {
-  const { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit } = useHabits()
+  const { habits, addHabit, addLog, updateLog, deleteLog, deleteHabit, archiveHabit, renewHabit } = useHabits()
   const [view, setView] = useState('list')
   const [selectedId, setSelectedId] = useState(null)
 
@@ -28,6 +28,13 @@ export default function App() {
     setSelectedId(null)
   }
 
+  function handleRenewAndNavigate(id) {
+    renewHabit(id)
+    // We'll just go to list and let the user tap the new card
+    setView('list')
+    setSelectedId(null)
+  }
+
   if (view === 'setup') {
     return <GoalSetup onSubmit={handleAdd} onBack={() => setView('list')} />
   }
@@ -41,6 +48,8 @@ export default function App() {
         onDeleteLog={logId => deleteLog(selectedId, logId)}
         onBack={() => setView('list')}
         onDelete={() => handleDelete(selectedId)}
+        onArchive={() => { archiveHabit(selectedId); setView('list') }}
+        onRenew={() => handleRenewAndNavigate(selectedId)}
       />
     )
   }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
 
 const pad = n => String(n).padStart(2, '0')
@@ -47,10 +48,14 @@ function MiniRing({ pct, isDone }) {
 }
 
 export default function HabitList({ habits, onSelect, onAdd }) {
-  const totalRecorded = habits.reduce((s, h) => s + sumRecorded(h.logs), 0)
-  const avgPct = habits.length === 0 ? 0
-    : Math.round(habits.reduce((s, h) => s + Math.min(sumRecorded(h.logs) / h.goalTotal, 1), 0) / habits.length * 100)
-  const doneCount = habits.filter(h => sumRecorded(h.logs) >= h.goalTotal).length
+  const [showArchived, setShowArchived] = useState(false)
+
+  const active = habits.filter(h => !h.archived)
+  const archived = habits.filter(h => h.archived)
+
+  const avgPct = active.length === 0 ? 0
+    : Math.round(active.reduce((s, h) => s + Math.min(sumRecorded(h.logs) / h.goalTotal, 1), 0) / active.length * 100)
+  const doneCount = active.filter(h => sumRecorded(h.logs) >= h.goalTotal).length
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
@@ -66,12 +71,12 @@ export default function HabitList({ habits, onSelect, onAdd }) {
           <p className="text-slate-400 text-sm mb-1">{getGreeting()}</p>
           <h1 className="text-3xl font-black text-white tracking-tight">マイ習慣</h1>
 
-          {habits.length > 0 && (
+          {active.length > 0 && (
             <div className="flex gap-4 mt-4">
               <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 flex-1">
                 <p className="text-xs text-slate-400 mb-0.5">習慣数</p>
                 <p className="text-white font-bold text-lg leading-none">
-                  {habits.length}
+                  {active.length}
                   <span className="text-slate-400 text-xs font-normal ml-1">個</span>
                 </p>
               </div>
@@ -98,7 +103,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
 
       {/* ── Habit list ── */}
       <div className="flex-1 px-5 pb-8">
-        {habits.length === 0 ? (
+        {active.length === 0 && archived.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <div className="relative mb-6">
               <div className="w-24 h-24 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
@@ -120,7 +125,16 @@ export default function HabitList({ habits, onSelect, onAdd }) {
           </div>
         ) : (
           <div className="space-y-3">
-            {habits.map(habit => {
+            {active.length === 0 && (
+              <div className="py-6 text-center">
+                <p className="text-slate-500 text-sm mb-3">アクティブな習慣がありません</p>
+                <button onClick={onAdd}
+                  className="px-5 py-2.5 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-2xl text-white font-bold text-sm shadow-lg shadow-violet-500/25 active:scale-95 transition-transform">
+                  新しい習慣を追加
+                </button>
+              </div>
+            )}
+            {active.map(habit => {
               const recorded = sumRecorded(habit.logs)
               const pct = Math.min(Math.round((recorded / habit.goalTotal) * 100), 100)
               const isDone = recorded >= habit.goalTotal
@@ -187,6 +201,50 @@ export default function HabitList({ habits, onSelect, onAdd }) {
                 </button>
               )
             })}
+
+            {/* Archived section */}
+            {archived.length > 0 && (
+              <div className="pt-2">
+                <button onClick={() => setShowArchived(v => !v)}
+                  className="w-full flex items-center justify-between py-2 text-xs text-slate-500 hover:text-slate-400 transition-colors">
+                  <span>アーカイブ済み ({archived.length}件)</span>
+                  <span className={`transition-transform text-xs ${showArchived ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+                {showArchived && (
+                  <div className="space-y-2 mt-1">
+                    {archived.map(habit => {
+                      const recorded = sumRecorded(habit.logs)
+                      const pct = Math.min(Math.round((recorded / habit.goalTotal) * 100), 100)
+                      return (
+                        <button key={habit.id} onClick={() => onSelect(habit.id)}
+                          className="w-full text-left rounded-2xl overflow-hidden active:scale-[0.98] transition-transform opacity-50"
+                          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <MiniRing pct={pct} isDone={pct >= 100} />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-xs font-bold leading-none text-slate-400">{pct}%</span>
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-slate-400 font-semibold text-sm truncate">{habit.type}</p>
+                                  <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full shrink-0">アーカイブ</span>
+                                </div>
+                                <p className="text-slate-600 text-xs mt-0.5">
+                                  {periodLabel(habit)} · {recorded.toLocaleString()} {habit.unit} 達成
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

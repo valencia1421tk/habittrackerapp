@@ -277,7 +277,7 @@ function LogItem({ log, unit, onUpdate, onDelete }) {
 }
 
 // ── Main component ───────────────────────────────────────────────
-export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog, onBack, onDelete }) {
+export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog, onBack, onDelete, onArchive, onRenew }) {
   const today = todayStr()
   const yesterday = yesterdayStr()
 
@@ -288,6 +288,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const [isSkip, setIsSkip] = useState(false)
   const [showLogs, setShowLogs] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [archiveConfirm, setArchiveConfirm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const recordRef = useRef(null)
 
@@ -320,6 +321,8 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
     }
   }
 
+  const isArchived = !!habit.archived
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {/* Delete habit confirm */}
@@ -331,6 +334,20 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(false)} className="flex-1 py-3 bg-slate-700 rounded-xl text-white font-medium">キャンセル</button>
               <button onClick={onDelete} className="flex-1 py-3 bg-red-500 rounded-xl text-white font-bold">削除する</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive confirm */}
+      {archiveConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6">
+          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm">
+            <h2 className="text-white font-bold text-lg mb-2">アーカイブしますか？</h2>
+            <p className="text-slate-400 text-sm mb-6">「{type}」をアーカイブします。記録は保存され、一覧の下部で確認できます。</p>
+            <div className="flex gap-3">
+              <button onClick={() => setArchiveConfirm(false)} className="flex-1 py-3 bg-slate-700 rounded-xl text-white font-medium">キャンセル</button>
+              <button onClick={onArchive} className="flex-1 py-3 bg-slate-500 rounded-xl text-white font-bold">アーカイブ</button>
             </div>
           </div>
         </div>
@@ -353,9 +370,18 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
           <button onClick={onBack} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors">
             ← 一覧に戻る
           </button>
-          <button onClick={() => setDeleteConfirm(true)} className="text-xs text-red-500/70 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg bg-slate-800">
-            削除
-          </button>
+          {isArchived ? (
+            <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg">アーカイブ済み</span>
+          ) : (
+            <div className="flex gap-2">
+              <button onClick={() => setArchiveConfirm(true)} className="text-xs text-slate-400 hover:text-slate-200 transition-colors px-3 py-1.5 rounded-lg bg-slate-800">
+                アーカイブ
+              </button>
+              <button onClick={() => setDeleteConfirm(true)} className="text-xs text-red-500/70 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg bg-slate-800">
+                削除
+              </button>
+            </div>
+          )}
         </div>
         <p className="text-slate-400 text-sm font-medium tracking-widest uppercase">Habit Tracker</p>
         <h1 className="text-2xl font-bold text-white mt-1">{type}</h1>
@@ -399,8 +425,41 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
         <WeekChart logs={logs} unit={unit} dailyAmount={dailyAmount} onOpenCalendar={() => setShowCalendar(true)} />
       </div>
 
-      {/* Record input */}
-      <div className="px-5 mb-5" ref={recordRef}>
+      {/* Achievement CTA — shown when goal is met and habit is still active */}
+      {isDone && !isArchived && (
+        <div className="px-5 mb-5">
+          <div className="bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-500/30 rounded-2xl p-5">
+            <p className="text-green-400 font-bold text-base mb-1">🎉 目標達成！</p>
+            <p className="text-slate-400 text-sm mb-4">記録を保存してアーカイブするか、同じ設定で新しい期間を始めましょう。</p>
+            <div className="flex gap-3">
+              <button onClick={() => setArchiveConfirm(true)}
+                className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-white text-sm font-medium transition-colors">
+                アーカイブ
+              </button>
+              <button onClick={onRenew}
+                className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-green-500/25 active:scale-95 transition-transform">
+                新しい期間を開始
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archived banner */}
+      {isArchived && (
+        <div className="px-5 mb-5">
+          <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 text-center">
+            <p className="text-slate-400 text-sm mb-3">この習慣はアーカイブされています。</p>
+            <button onClick={onRenew}
+              className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-violet-500/25 active:scale-95 transition-transform">
+              同じ設定で再開する
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Record input — hidden for archived habits */}
+      {!isArchived && <div className="px-5 mb-5" ref={recordRef}>
         <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 space-y-3">
           <p className="text-sm text-slate-400 font-medium">記録を追加</p>
           <div className="grid grid-cols-3 gap-1.5">
@@ -460,7 +519,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
             {isSkip ? 'スキップとして記録' : '記録する'}
           </button>
         </div>
-      </div>
+      </div>}
 
       {/* Log history */}
       {logs.length > 0 && (
