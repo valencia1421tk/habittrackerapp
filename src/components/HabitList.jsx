@@ -1,5 +1,23 @@
 import { sumRecorded } from '../hooks/useHabits'
 
+const pad = n => String(n).padStart(2, '0')
+const toDateStr = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
+
+function calcStreak(logs) {
+  const today = toDateStr(new Date())
+  const yesterday = toDateStr(new Date(Date.now() - 86400000))
+  const done = new Set(logs.filter(l => l.status === 'completed').map(l => l.date))
+  const start = done.has(today) ? today : done.has(yesterday) ? yesterday : null
+  if (!start) return 0
+  let streak = 0
+  const cur = new Date(start + 'T12:00:00')
+  while (done.has(toDateStr(cur))) {
+    streak++
+    cur.setDate(cur.getDate() - 1)
+  }
+  return streak
+}
+
 function periodLabel(habit) {
   if (habit.period === 'week') return '1週間'
   if (habit.period === 'month') return '1ヶ月'
@@ -107,6 +125,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
               const pct = Math.min(Math.round((recorded / habit.goalTotal) * 100), 100)
               const isDone = recorded >= habit.goalTotal
               const remaining = Math.max(habit.goalTotal - recorded, 0)
+              const streak = calcStreak(habit.logs)
 
               return (
                 <button key={habit.id} onClick={() => onSelect(habit.id)}
@@ -133,9 +152,20 @@ export default function HabitList({ habits, onSelect, onAdd }) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-white font-bold text-base truncate">{habit.type}</p>
-                          {isDone && (
-                            <span className="text-xs bg-green-500/15 text-green-400 border border-green-500/25 rounded-full px-2 py-0.5 shrink-0">達成</span>
-                          )}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {streak > 0 && (
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                                streak >= 7 ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                                : streak >= 3 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-amber-500/10 text-amber-400/80 border border-amber-500/20'
+                              }`}>
+                                🔥 {streak}日
+                              </span>
+                            )}
+                            {isDone && (
+                              <span className="text-xs bg-green-500/15 text-green-400 border border-green-500/25 rounded-full px-2 py-0.5">達成</span>
+                            )}
+                          </div>
                         </div>
                         <p className="text-slate-500 text-xs mt-0.5">
                           {periodLabel(habit)} · 週{habit.weeklyDays}日 · {habit.dailyAmount}{habit.unit}/日
