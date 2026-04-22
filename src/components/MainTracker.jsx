@@ -123,8 +123,8 @@ function MonthCalendar({ logs, unit, dailyAmount, onClose, onSelectDate, t }) {
                 >
                   <span className={`text-xs font-medium leading-none ${numColor} ${isToday && !bg ? 'text-violet-400' : ''}`}>{dayNum}</span>
                   {inMonth && completed > 0 && (
-                    <span className={`leading-none font-medium ${valColor}`} style={{ fontSize: '9px' }}>
-                      {completed % 1 === 0 ? completed : completed.toFixed(1)}
+                    <span className={`leading-none font-medium text-center ${valColor}`} style={{ fontSize: '8px' }}>
+                      {completed % 1 === 0 ? completed : completed.toFixed(1)}{unit}
                     </span>
                   )}
                 </button>
@@ -178,8 +178,8 @@ function WeekChart({ logs, unit, dailyAmount, onOpenCalendar, t }) {
           const isToday = date === today
           return (
             <div key={date} className="flex-1 flex flex-col items-center gap-0.5">
-              <span className="text-xs text-violet-300 font-medium" style={{ minHeight: '1rem' }}>
-                {completed > 0 ? (completed % 1 === 0 ? completed : completed.toFixed(1)) : ''}
+              <span className="text-violet-300 font-medium text-center leading-tight" style={{ minHeight: '1rem', fontSize: '9px' }}>
+                {completed > 0 ? <>{completed % 1 === 0 ? completed : completed.toFixed(1)}<br/>{unit}</> : ''}
               </span>
               <div className="w-full flex flex-col justify-end" style={{ height: 56 }}>
                 {completed > 0 ? (
