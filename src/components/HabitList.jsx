@@ -1,5 +1,66 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
+
+const QUOTE_KEY = 'habit-tracker-quote'
+
+function QuoteWidget() {
+  const [quote, setQuote] = useState(() => localStorage.getItem(QUOTE_KEY) || '')
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const inputRef = useRef(null)
+
+  function startEdit() {
+    setDraft(quote)
+    setEditing(true)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  function save() {
+    const val = draft.trim()
+    setQuote(val)
+    localStorage.setItem(QUOTE_KEY, val)
+    setEditing(false)
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter') save()
+    if (e.key === 'Escape') setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2 mt-3">
+        <input
+          ref={inputRef}
+          type="text"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="名言・座右の銘を入力…"
+          className="flex-1 bg-transparent border-b border-violet-500/50 text-slate-300 text-sm py-1 focus:outline-none placeholder-slate-600"
+        />
+        <button onClick={save} className="text-xs text-violet-400 px-2 py-1 shrink-0">保存</button>
+        <button onClick={() => setEditing(false)} className="text-xs text-slate-600 px-1 py-1 shrink-0">×</button>
+      </div>
+    )
+  }
+
+  if (quote) {
+    return (
+      <button onClick={startEdit} className="mt-3 text-left group w-full">
+        <p className="text-slate-500 text-xs italic leading-relaxed group-active:text-slate-400 transition-colors">
+          &ldquo;{quote}&rdquo;
+        </p>
+      </button>
+    )
+  }
+
+  return (
+    <button onClick={startEdit} className="mt-3 flex items-center gap-1.5 text-slate-700 hover:text-slate-500 transition-colors">
+      <span className="text-xs">＋ 名言を追加</span>
+    </button>
+  )
+}
 
 const pad = n => String(n).padStart(2, '0')
 const toDateStr = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
@@ -69,7 +130,8 @@ export default function HabitList({ habits, onSelect, onAdd }) {
         <div className="relative">
           <p className="text-violet-400/80 text-xs font-semibold tracking-[0.2em] uppercase mb-1">Habit Tracker</p>
           <p className="text-slate-400 text-sm mb-1">{getGreeting()}</p>
-          <h1 className="text-3xl font-black text-white tracking-tight">マイ習慣</h1>
+          <QuoteWidget />
+          <h1 className="text-3xl font-black text-white tracking-tight mt-3">進行中の習慣</h1>
 
           {active.length > 0 && (
             <div className="flex gap-4 mt-4">
@@ -117,7 +179,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
               </div>
             </div>
             <p className="text-white font-semibold text-base">習慣を追加しよう</p>
-            <p className="text-slate-500 text-sm mt-1 mb-5">右上の + から目標を設定できます</p>
+            <p className="text-slate-500 text-sm mt-1 mb-5">＋ ボタンから目標を設定できます</p>
             <button onClick={onAdd}
               className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-2xl text-white font-bold text-sm shadow-lg shadow-violet-500/25 active:scale-95 transition-transform">
               最初の習慣を追加
