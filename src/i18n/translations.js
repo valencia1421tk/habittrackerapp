@@ -141,6 +141,8 @@ export const translations = {
     setup_preview_goal: '目標値',
     setup_submit: '目標を開始する',
     setup_renew_submit: 'この設定で再開する',
+    setup_buffer_label: '目標量に15%を上乗せする',
+    setup_buffer_hint: '「早起き」など回数に上限があるタスクはオフにしてください',
 
     // Presets (label shown on button; also stored as habit.type)
     presets: [
@@ -291,6 +293,8 @@ export const translations = {
     setup_preview_goal: 'Target',
     setup_submit: 'Start habit',
     setup_renew_submit: 'Restart with these settings',
+    setup_buffer_label: 'Add 15% buffer to target',
+    setup_buffer_hint: 'Turn off for habits with a fixed count (e.g. "wake up early")',
 
     // Presets
     presets: [
@@ -441,6 +445,8 @@ export const translations = {
     setup_preview_goal: 'เป้าหมาย',
     setup_submit: 'เริ่มนิสัย',
     setup_renew_submit: 'เริ่มใหม่ด้วยการตั้งค่านี้',
+    setup_buffer_label: 'เพิ่ม 15% ให้เป้าหมาย',
+    setup_buffer_hint: 'ปิดสำหรับนิสัยที่มีจำนวนจำกัด เช่น "ตื่นเช้า"',
 
     // Presets
     presets: [

@@ -13,6 +13,7 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
   const [dailyAmount, setDailyAmount] = useState(iv.dailyAmount ? String(iv.dailyAmount) : '')
   const [weeklyDays, setWeeklyDays] = useState(iv.weeklyDays ? String(iv.weeklyDays) : '5')
   const [customType, setCustomType] = useState(!!iv.type && !isPreset)
+  const [noBuffer, setNoBuffer] = useState(iv.noBuffer ?? false)
 
   function handlePreset(preset) {
     setType(preset.label)
@@ -24,14 +25,14 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
   const weeks = periodDays / 7
   const totalDays = Math.round(weeks * Number(weeklyDays || 0))
   const rawTotal = totalDays * Number(dailyAmount || 0)
-  const goalTotal = Math.ceil(rawTotal * 1.15)
+  const goalTotal = noBuffer ? rawTotal : Math.ceil(rawTotal * 1.15)
 
   const canSubmit = type && unit && dailyAmount && weeklyDays && (period !== 'custom' || customDays)
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    onSubmit({ type, unit, period, customDays: Number(customDays) || 0, dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays) })
+    onSubmit({ type, unit, period, customDays: Number(customDays) || 0, dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), noBuffer })
   }
 
   return (
@@ -184,6 +185,23 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
           <p className="text-xs text-slate-500 mt-2 text-center">{t.setup_weekly_display(weeklyDays)}</p>
         </div>
 
+        {/* 15%バッファ トグル */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setNoBuffer(v => !v)}
+            className="w-full flex items-center justify-between py-3 px-4 bg-slate-800/60 border border-slate-700 rounded-2xl transition-colors"
+          >
+            <div className="text-left">
+              <p className="text-sm text-slate-200 font-medium">{t.setup_buffer_label}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t.setup_buffer_hint}</p>
+            </div>
+            <div className={`w-11 h-6 rounded-full transition-colors shrink-0 ml-3 relative ${!noBuffer ? 'bg-violet-500' : 'bg-slate-600'}`}>
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${!noBuffer ? 'left-5' : 'left-0.5'}`} />
+            </div>
+          </button>
+        </div>
+
         {/* プレビュー */}
         {canSubmit && (
           <div className="bg-gradient-to-br from-violet-900/40 to-indigo-900/40 border border-violet-700/40 rounded-2xl p-4 space-y-2">
@@ -192,10 +210,12 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
               <span className="text-slate-400">{t.setup_preview_days}</span>
               <span className="text-white font-medium">{totalDays} {t.setup_preview_days_unit}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">{t.setup_preview_required}</span>
-              <span className="text-slate-300">{rawTotal} → {goalTotal} {unit}</span>
-            </div>
+            {!noBuffer && (
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">{t.setup_preview_required}</span>
+                <span className="text-slate-300">{rawTotal} → {goalTotal} {unit}</span>
+              </div>
+            )}
             <div className="border-t border-violet-700/40 pt-2 flex justify-between">
               <span className="text-white font-semibold">{t.setup_preview_goal}</span>
               <span className="text-violet-300 font-bold text-lg">{goalTotal} {unit}</span>

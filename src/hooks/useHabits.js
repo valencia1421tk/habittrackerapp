@@ -11,10 +11,11 @@ function load() {
   }
 }
 
-function calcGoal({ dailyAmount, weeklyDays, periodDays }) {
+function calcGoal({ dailyAmount, weeklyDays, periodDays, noBuffer }) {
   const weeks = periodDays / 7
   const totalDays = Math.round(weeks * weeklyDays)
-  return Math.ceil(totalDays * dailyAmount * 1.15)
+  const raw = totalDays * dailyAmount
+  return noBuffer ? raw : Math.ceil(raw * 1.15)
 }
 
 export function sumRecorded(logs) {
@@ -28,15 +29,16 @@ export function useHabits() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(habits))
   }, [habits])
 
-  function addHabit({ type, unit, period, customDays, dailyAmount, weeklyDays }) {
+  function addHabit({ type, unit, period, customDays, dailyAmount, weeklyDays, noBuffer }) {
     const periodDays = period === 'week' ? 7 : period === 'month' ? 30 : Number(customDays || 0)
-    const goalTotal = calcGoal({ dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), periodDays })
+    const goalTotal = calcGoal({ dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), periodDays, noBuffer: !!noBuffer })
     const habit = {
       id: Date.now().toString(),
       type, unit, period, periodDays,
       dailyAmount: Number(dailyAmount),
       weeklyDays: Number(weeklyDays),
       goalTotal,
+      noBuffer: !!noBuffer,
       logs: [],
       createdAt: Date.now(),
     }
@@ -102,6 +104,7 @@ export function useHabits() {
         period: old.period, periodDays: old.periodDays,
         dailyAmount: old.dailyAmount, weeklyDays: old.weeklyDays,
         goalTotal: old.goalTotal,
+        noBuffer: old.noBuffer,
         logs: [],
         inheritedLogs: [...(old.inheritedLogs || []), ...old.logs],
         createdAt: Date.now(),
@@ -113,18 +116,19 @@ export function useHabits() {
     })
   }
 
-  function renewHabitWithSettings(id, { type, unit, period, customDays, dailyAmount, weeklyDays }) {
+  function renewHabitWithSettings(id, { type, unit, period, customDays, dailyAmount, weeklyDays, noBuffer }) {
     setHabits(prev => {
       const old = prev.find(h => h.id === id)
       if (!old) return prev
       const periodDays = period === 'week' ? 7 : period === 'month' ? 30 : Number(customDays || 0)
-      const goalTotal = calcGoal({ dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), periodDays })
+      const goalTotal = calcGoal({ dailyAmount: Number(dailyAmount), weeklyDays: Number(weeklyDays), periodDays, noBuffer: !!noBuffer })
       const renewed = {
         id: Date.now().toString(),
         type, unit, period, periodDays,
         dailyAmount: Number(dailyAmount),
         weeklyDays: Number(weeklyDays),
         goalTotal,
+        noBuffer: !!noBuffer,
         logs: [],
         inheritedLogs: [...(old.inheritedLogs || []), ...old.logs],
         createdAt: Date.now(),

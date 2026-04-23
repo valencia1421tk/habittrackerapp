@@ -64,6 +64,7 @@ export default function App() {
           customDays: renewingHabit.period === 'custom' ? renewingHabit.periodDays : '',
           dailyAmount: renewingHabit.dailyAmount,
           weeklyDays: renewingHabit.weeklyDays,
+          noBuffer: renewingHabit.noBuffer,
         }}
         submitLabel="この設定で再開する"
       />
