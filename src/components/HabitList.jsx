@@ -96,6 +96,34 @@ function QuoteWidget({ t }) {
   )
 }
 
+function HelpModal({ onClose }) {
+  const { t } = useLang()
+  const [idx, setIdx] = useState(0)
+  const topic = t.help_topics[idx]
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full max-w-sm max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-800">
+          <p className="text-white font-bold text-base">{t.help_title}</p>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-sm transition-colors">{t.help_close}</button>
+        </div>
+        <div className="flex gap-2 px-5 pt-4 pb-2 flex-wrap">
+          {t.help_topics.map((tp, i) => (
+            <button key={tp.id} onClick={() => setIdx(i)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${i === idx ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
+              {tp.title}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 pb-6">
+          <p className="text-sm font-semibold text-violet-300 mb-2">{topic.title}</p>
+          <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{topic.body}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function LanguageSwitcher() {
   const { lang, switchLang, LANGUAGES } = useLang()
   const [open, setOpen] = useState(false)
@@ -136,6 +164,7 @@ function LanguageSwitcher() {
 export default function HabitList({ habits, onSelect, onAdd }) {
   const { t } = useLang()
   const [showArchived, setShowArchived] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   const active = habits.filter(h => !h.archived)
   const archived = habits.filter(h => h.archived)
@@ -159,6 +188,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
       {/* ── Header ── */}
       <div className="relative overflow-hidden px-5 pt-14 pb-8">
@@ -166,10 +196,18 @@ export default function HabitList({ habits, onSelect, onAdd }) {
         <div className="absolute top-8 -left-20 w-48 h-48 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none" />
 
         <div className="relative">
-          {/* Top row: brand + language switcher */}
+          {/* Top row: brand + help + language switcher */}
           <div className="flex items-center justify-between mb-1">
             <p className="text-violet-400/80 text-xs font-semibold tracking-[0.2em] uppercase">Habit Tracker</p>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowHelp(true)}
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-slate-400 text-sm font-bold hover:bg-white/10 hover:text-white transition-colors flex items-center justify-center"
+              >
+                ?
+              </button>
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <p className="text-slate-400 text-sm mb-1">{getGreeting()}</p>

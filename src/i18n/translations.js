@@ -1,6 +1,6 @@
 export const LANGUAGES = [
-  { code: 'ja', label: '日本語' },
   { code: 'en', label: 'English' },
+  { code: 'ja', label: '日本語' },
   { code: 'th', label: 'ภาษาไทย' },
 ]
 
@@ -151,6 +151,17 @@ export const translations = {
       { label: '単語暗記', unit: '個' },
       { label: '読書', unit: 'ページ' },
       { label: '瞑想', unit: '分' },
+    ],
+
+    // Help modal
+    help_title: 'ヘルプ',
+    help_close: '閉じる',
+    help_topics: [
+      {
+        id: 'app_desc',
+        title: 'アプリの説明',
+        body: '習慣を「残り量」で管理する、シンプルなトラッカー\n\n多くの習慣管理アプリは「どれだけ積み上げたか」を記録します。このアプリは逆の発想で、期間内にこなすべき総量をあらかじめ設定し、記録するたびに残りが減っていくことを可視化します。\n\n「今週あと何回走ればいいか」「今月あと何ページ読めばいいか」が一目でわかるため、ゴールへの距離感を常に意識しながら習慣を続けられます。\n\n主な機能\n・習慣の種類・期間・1日の目安量・週の頻度を設定すると、目標総量を自動計算（×1.15のバッファ付き）\n※「早起き」など回数に上限があるタスクはバッファをオフにしてください。\n・記録するたびに残り量がリアルタイムで減少、リング・プログレスバーで進捗を可視化\n・日次の記録・スキップ管理、メモ付き\n・直近7日の棒グラフ＋月次カレンダーで達成状況を確認\n・期間終了後はアーカイブして記録を保存、同じ設定または変更して再開可能\n・日本語・English・ภาษาไทย 対応\n・ホーム画面追加でアプリのように使用可（PWA対応）\n・データはすべて端末内に保存、アカウント不要',
+      },
     ],
   },
 
@@ -304,6 +315,17 @@ export const translations = {
       { label: 'Reading', unit: 'pages' },
       { label: 'Meditation', unit: 'min' },
     ],
+
+    // Help modal
+    help_title: 'Help',
+    help_close: 'Close',
+    help_topics: [
+      {
+        id: 'app_desc',
+        title: 'App Description',
+        body: 'A simple tracker that manages habits by "remaining amount"\n\nMost habit apps record how much you\'ve accumulated. This app takes the opposite approach — you set the total amount to complete within a period upfront, and each log reduces what\'s left.\n\n"How many more runs do I need this week?" "How many more pages should I read this month?" — the answer is always clear, so you stay aware of how close you are to your goal.\n\nKey Features\n· Set habit type, period, daily target, and weekly frequency — the total goal is calculated automatically (with a ×1.15 buffer)\n  * Turn off the buffer for habits with a fixed count (e.g. "wake up early").\n· Each log reduces the remaining amount in real time, visualized with a ring and progress bar\n· Daily log and skip management, with optional notes\n· View achievement with a 7-day bar chart + monthly calendar\n· Archive when a period ends to save your record; restart with the same or new settings\n· Available in 日本語, English, and ภาษาไทย\n· Add to home screen for an app-like experience (PWA)\n· All data stored locally on your device — no account needed',
+      },
+    ],
   },
 
   th: {
@@ -455,6 +477,17 @@ export const translations = {
       { label: 'ท่องศัพท์', unit: 'คำ' },
       { label: 'อ่านหนังสือ', unit: 'หน้า' },
       { label: 'นั่งสมาธิ', unit: 'นาที' },
+    ],
+
+    // Help modal
+    help_title: 'ช่วยเหลือ',
+    help_close: 'ปิด',
+    help_topics: [
+      {
+        id: 'app_desc',
+        title: 'คำอธิบายแอป',
+        body: 'แอปติดตามนิสัยด้วย "ปริมาณที่เหลือ" อย่างเรียบง่าย\n\nแอปนิสัยส่วนใหญ่บันทึกว่าสะสมได้เท่าไหร่ แอปนี้คิดแบบตรงกันข้าม — คุณตั้งปริมาณรวมที่ต้องทำให้เสร็จในแต่ละรอบไว้ล่วงหน้า และทุกครั้งที่บันทึก ปริมาณที่เหลือจะลดลง\n\n"สัปดาห์นี้ต้องวิ่งอีกกี่ครั้ง?" "เดือนนี้ต้องอ่านอีกกี่หน้า?" — เห็นคำตอบได้ทันที ทำให้คุณรู้สึกใกล้เป้าหมายตลอดเวลา\n\nฟีเจอร์หลัก\n· ตั้งค่าประเภทนิสัย ระยะเวลา เป้าหมายต่อวัน และความถี่ต่อสัปดาห์ — ระบบคำนวณเป้าหมายรวมอัตโนมัติ (เพิ่ม ×1.15)\n  * ปิดบัฟเฟอร์สำหรับนิสัยที่มีจำนวนจำกัด เช่น "ตื่นเช้า"\n· ทุกครั้งที่บันทึก ปริมาณที่เหลือลดลงแบบเรียลไทม์ แสดงด้วยวงแหวนและแถบความคืบหน้า\n· จัดการบันทึกและการข้ามรายวัน พร้อมโน้ต\n· ดูผลสำเร็จด้วยกราฟแท่ง 7 วัน และปฏิทินรายเดือน\n· เก็บถาวรเมื่อหมดรอบเพื่อบันทึกผล เริ่มใหม่ด้วยการตั้งค่าเดิมหรือใหม่ได้\n· รองรับ 日本語, English และ ภาษาไทย\n· เพิ่มในหน้าจอหลักเพื่อใช้งานเหมือนแอป (PWA)\n· ข้อมูลทั้งหมดบันทึกในอุปกรณ์ ไม่ต้องสมัครสมาชิก',
+      },
     ],
   },
 }
