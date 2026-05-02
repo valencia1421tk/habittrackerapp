@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
 import { useLang } from '../i18n/LanguageContext'
+import RecordForm from './RecordForm'
 
 const pad = n => String(n).padStart(2, '0')
 const toDateStr = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
@@ -105,7 +106,7 @@ function MonthCalendar({ logs, unit, dailyAmount, onClose, onSelectDate, t }) {
             const dayNum = parseInt(date.slice(8), 10)
 
             let bg = ''
-            let numColor = inMonth ? 'text-slate-400' : 'text-slate-700'
+            let numColor = inMonth ? 'text-slate-400' : 'text-slate-800'
             let valColor = 'text-white'
 
             if (inMonth) {
@@ -257,8 +258,8 @@ function LogItem({ log, unit, onUpdate, onDelete, t }) {
         {log.note && <p className="text-slate-500 text-xs mt-0.5 truncate">{log.note}</p>}
       </div>
       <div className="flex gap-1 ml-2 shrink-0">
-        <button onClick={() => setEditing(true)} className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors">{t.log_edit}</button>
-        <button onClick={() => setConfirmDel(true)} className="text-xs text-slate-500 hover:text-red-400 px-2 py-1 transition-colors">{t.log_delete}</button>
+        <button onClick={() => setEditing(true)} className="text-xs text-slate-500 hover:text-slate-300 min-h-[44px] px-3 flex items-center transition-colors">{t.log_edit}</button>
+        <button onClick={() => setConfirmDel(true)} className="text-xs text-slate-500 hover:text-red-400 min-h-[44px] px-3 flex items-center transition-colors">{t.log_delete}</button>
       </div>
     </div>
   )
@@ -270,16 +271,10 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const today = todayStr()
   const yesterday = yesterdayStr()
 
-  const [input, setInput] = useState('')
-  const [note, setNote] = useState('')
-  const [dateMode, setDateMode] = useState('today')
-  const [customDate, setCustomDate] = useState(today)
-  const [isSkip, setIsSkip] = useState(false)
   const [showLogs, setShowLogs] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [archiveConfirm, setArchiveConfirm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const recordRef = useRef(null)
 
   const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
   const allLogs = [...logs, ...(habit.inheritedLogs || [])]
@@ -295,26 +290,8 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
     0
   )
 
-  const selectedDate = dateMode === 'today' ? today : dateMode === 'yesterday' ? yesterday : customDate
-
   function handleSelectDate(date) {
-    setCustomDate(date)
-    setDateMode('custom')
     setShowCalendar(false)
-    setTimeout(() => recordRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
-  }
-
-  function handleRecord() {
-    if (isSkip) {
-      onAddLog({ date: selectedDate, value: null, status: 'skipped', note })
-      setNote('')
-    } else {
-      const val = Number(input)
-      if (!val || val <= 0) return
-      onAddLog({ date: selectedDate, value: val, status: 'completed', note })
-      setInput('')
-      setNote('')
-    }
   }
 
   return (
@@ -422,6 +399,16 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
         </div>
       </div>
 
+      {/* Record input — moved above chart */}
+      {!isArchived && (
+        <div className="px-5 mb-5">
+          <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
+            <p className="text-sm text-slate-400 font-medium mb-3">{t.record_title}</p>
+            <RecordForm habit={habit} onRecord={entry => onAddLog(entry)} />
+          </div>
+        </div>
+      )}
+
       {/* 7-day chart */}
       <div className="px-5 mb-5">
         <WeekChart logs={allLogs} unit={unit} dailyAmount={dailyAmount} onOpenCalendar={() => setShowCalendar(true)} t={t} />
@@ -466,71 +453,6 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
                 {t.btn_renew_setup}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Record input */}
-      {!isArchived && (
-        <div className="px-5 mb-5" ref={recordRef}>
-          <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 space-y-3">
-            <p className="text-sm text-slate-400 font-medium">{t.record_title}</p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[{ id: 'today', label: t.date_today }, { id: 'yesterday', label: t.date_yesterday }, { id: 'custom', label: t.date_custom }].map(opt => (
-                <button key={opt.id} type="button" onClick={() => setDateMode(opt.id)}
-                  className={`py-2 rounded-xl text-xs font-medium transition-all ${dateMode === opt.id ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            {dateMode === 'custom' && (
-              <input type="date" value={customDate} max={today} onChange={e => setCustomDate(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500 [color-scheme:dark]" />
-            )}
-            <div className="grid grid-cols-2 gap-1.5">
-              <button type="button" onClick={() => setIsSkip(false)}
-                className={`py-2 rounded-xl text-xs font-medium transition-all ${!isSkip ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
-                {t.mode_record}
-              </button>
-              <button type="button" onClick={() => setIsSkip(true)}
-                className={`py-2 rounded-xl text-xs font-medium transition-all ${isSkip ? 'bg-amber-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
-                {t.mode_skip}
-              </button>
-            </div>
-            {!isSkip ? (
-              <>
-                <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
-                  <input type="number" min="0.1" step="any" placeholder="0" value={input}
-                    onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleRecord()}
-                    className="flex-1 min-w-0 bg-transparent text-white text-lg font-semibold placeholder-slate-600 focus:outline-none" />
-                  <span className="text-slate-400 text-sm whitespace-nowrap">{unit}</span>
-                </div>
-                <div className="flex gap-1.5">
-                  {[dailyAmount * 0.5, dailyAmount, dailyAmount * 2].map((v, i) => {
-                    const val = Math.round(v * 10) / 10
-                    return (
-                      <button key={i} type="button" onClick={() => setInput(String(val))}
-                        className="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-slate-300 transition-colors">
-                        {val}{unit}
-                      </button>
-                    )
-                  })}
-                </div>
-              </>
-            ) : (
-              <input type="text" placeholder={t.skip_reason_placeholder} value={note}
-                onChange={e => setNote(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 placeholder-slate-600" />
-            )}
-            {!isSkip && (
-              <input type="text" placeholder={t.note_placeholder} value={note} onChange={e => setNote(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500 placeholder-slate-600" />
-            )}
-            <button onClick={handleRecord}
-              disabled={!isSkip && (!input || Number(input) <= 0)}
-              className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-lg ${isSkip ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20' : 'bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 shadow-violet-500/20'}`}>
-              {isSkip ? t.btn_skip_record : t.btn_record}
-            </button>
           </div>
         </div>
       )}

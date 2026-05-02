@@ -154,7 +154,7 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
             <input
               type="number"
               min="1"
-              placeholder="0"
+              placeholder={t.setup_daily_placeholder}
               value={dailyAmount}
               onChange={e => setDailyAmount(e.target.value)}
               className="flex-1 min-w-0 bg-transparent text-white text-base font-semibold placeholder-slate-500 focus:outline-none"
@@ -230,6 +230,13 @@ export default function GoalSetup({ onSubmit, onBack, initialValues, submitLabel
         >
           {submitLabel || t.setup_submit}
         </button>
+        {!canSubmit && (
+          <p className="text-center text-xs text-slate-500 -mt-2">
+            {!type && t.setup_hint_type}
+            {type && !dailyAmount && t.setup_hint_amount}
+            {period === 'custom' && !customDays && t.setup_hint_days}
+          </p>
+        )}
       </form>
     </div>
   )

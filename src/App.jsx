@@ -87,5 +87,5 @@ export default function App() {
     )
   }
 
-  return <HabitList habits={habits} onSelect={handleSelect} onAdd={() => setView('setup')} />
+  return <HabitList habits={habits} onSelect={handleSelect} onAdd={() => setView('setup')} onAddLog={(habitId, entry) => addLog(habitId, entry)} />
 }

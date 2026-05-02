@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
 import { useLang } from '../i18n/LanguageContext'
+import RecordForm from './RecordForm'
 
 const QUOTE_KEY = 'habit-tracker-quote'
 
@@ -40,100 +41,47 @@ function MiniRing({ pct, isDone }) {
 function QuoteWidget({ t }) {
   const [quote, setQuote] = useState(() => localStorage.getItem(QUOTE_KEY) || '')
   const [editing, setEditing] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [draft, setDraft] = useState('')
-  const inputRef = useRef(null)
 
-  function startEdit() {
-    setDraft(quote)
-    setEditing(true)
-    setTimeout(() => inputRef.current?.focus(), 50)
-  }
-
-  function save() {
-    const val = draft.trim()
-    setQuote(val)
-    localStorage.setItem(QUOTE_KEY, val)
-    setEditing(false)
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter') save()
-    if (e.key === 'Escape') setEditing(false)
-  }
+  function startEdit() { setDraft(quote); setEditing(true) }
+  function save() { const v = draft.trim(); setQuote(v); localStorage.setItem(QUOTE_KEY, v); setEditing(false) }
+  function handleKey(e) { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }
 
   if (editing) {
     return (
-      <div className="flex items-center gap-2 mt-3">
-        <input
-          ref={inputRef}
-          type="text"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder={t.quote_placeholder}
-          className="flex-1 bg-transparent border-b border-violet-500/50 text-slate-300 text-sm py-1 focus:outline-none placeholder-slate-600"
-        />
+      <div className="flex items-center gap-2 mt-2">
+        <input ref={r => r && setTimeout(() => r.focus(), 50)} type="text" value={draft} onChange={e => setDraft(e.target.value)}
+          onKeyDown={handleKey} placeholder={t.quote_placeholder}
+          className="flex-1 bg-transparent border-b border-violet-500/50 text-slate-300 text-sm py-1 focus:outline-none placeholder-slate-600" />
         <button onClick={save} className="text-xs text-violet-400 px-2 py-1 shrink-0">{t.quote_save}</button>
         <button onClick={() => setEditing(false)} className="text-xs text-slate-600 px-1 py-1 shrink-0">×</button>
       </div>
     )
   }
-
   if (quote) {
     return (
-      <button onClick={startEdit} className="mt-3 text-left group w-full">
-        <p className="text-slate-500 text-xs italic leading-relaxed group-active:text-slate-400 transition-colors">
+      <button onClick={() => setExpanded(v => !v)} className="mt-2 text-left w-full group">
+        <p className={`text-slate-500 text-xs italic leading-relaxed group-active:text-slate-400 transition-colors ${expanded ? '' : 'line-clamp-2'}`}>
           &ldquo;{quote}&rdquo;
         </p>
       </button>
     )
   }
-
   return (
-    <button onClick={startEdit} className="mt-3 flex items-center gap-1.5 text-slate-700 hover:text-slate-500 transition-colors">
+    <button onClick={startEdit} className="mt-2 flex items-center gap-1.5 text-slate-700 hover:text-slate-500 transition-colors">
       <span className="text-xs">{t.quote_add}</span>
     </button>
-  )
-}
-
-function HelpModal({ onClose }) {
-  const { t } = useLang()
-  const [idx, setIdx] = useState(0)
-  const topic = t.help_topics[idx]
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full max-w-sm max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-800">
-          <p className="text-white font-bold text-base">{t.help_title}</p>
-          <button onClick={onClose} className="text-slate-400 hover:text-white text-sm transition-colors">{t.help_close}</button>
-        </div>
-        <div className="flex gap-2 px-5 pt-4 pb-2 flex-wrap">
-          {t.help_topics.map((tp, i) => (
-            <button key={tp.id} onClick={() => setIdx(i)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${i === idx ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
-              {tp.title}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-6">
-          <p className="text-sm font-semibold text-violet-300 mb-2">{topic.title}</p>
-          <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{topic.body}</p>
-        </div>
-      </div>
-    </div>
   )
 }
 
 function LanguageSwitcher() {
   const { lang, switchLang, LANGUAGES } = useLang()
   const [open, setOpen] = useState(false)
-
   return (
     <div className="relative">
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 text-xs font-medium hover:bg-white/10 transition-colors"
-      >
+      <button onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 text-xs font-medium hover:bg-white/10 transition-colors">
         {LANGUAGES.find(l => l.code === lang)?.label}
         <span className={`text-xs transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
@@ -142,15 +90,8 @@ function LanguageSwitcher() {
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-1.5 z-20 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl min-w-[110px]">
             {LANGUAGES.map(l => (
-              <button
-                key={l.code}
-                onClick={() => { switchLang(l.code); setOpen(false) }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                  lang === l.code
-                    ? 'text-violet-400 bg-violet-500/10 font-medium'
-                    : 'text-slate-300 hover:bg-slate-700'
-                }`}
-              >
+              <button key={l.code} onClick={() => { switchLang(l.code); setOpen(false) }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${lang === l.code ? 'text-violet-400 bg-violet-500/10 font-medium' : 'text-slate-300 hover:bg-slate-700'}`}>
                 {l.label}
               </button>
             ))}
@@ -161,17 +102,98 @@ function LanguageSwitcher() {
   )
 }
 
-export default function HabitList({ habits, onSelect, onAdd }) {
+function HelpModal({ onClose }) {
+  const { t } = useLang()
+  const [openSection, setOpenSection] = useState(null)
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full max-w-sm max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-800">
+          <p className="text-white font-bold text-base">{t.help_title}</p>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-sm transition-colors px-2 py-1">{t.help_close}</button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
+          <ul className="space-y-2 mb-5">
+            {(t.help_summary || []).map((line, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                <span className="text-violet-400 font-bold shrink-0">{i + 1}.</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="space-y-1">
+            {(t.help_sections || []).map(sec => (
+              <div key={sec.id} className="border border-slate-800 rounded-xl overflow-hidden">
+                <button onClick={() => setOpenSection(openSection === sec.id ? null : sec.id)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-200 hover:bg-slate-800/60 transition-colors">
+                  <span>{sec.title}</span>
+                  <span className={`text-slate-500 text-xs transition-transform ${openSection === sec.id ? 'rotate-180' : ''}`}>▾</span>
+                </button>
+                {openSection === sec.id && (
+                  <div className="px-4 pb-4 text-xs text-slate-400 leading-relaxed whitespace-pre-line border-t border-slate-800 pt-3">
+                    {sec.body}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HomeQuickSheet({ habit, onRecord, onClose }) {
+  const { t } = useLang()
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center" onClick={onClose}>
+      <div className="bg-slate-900 rounded-t-3xl w-full max-w-sm max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-800">
+          <p className="text-white font-bold text-base truncate pr-4">{habit.type}</p>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-sm px-2 py-1 shrink-0">✕</button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <RecordForm habit={habit} onRecord={entry => { onRecord(entry); onClose() }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SkipConfirmModal({ habit, onConfirm, onClose }) {
+  const { t } = useLang()
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-6" onClick={onClose}>
+      <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <p className="text-white font-semibold text-base mb-1">{habit.type}</p>
+        <p className="text-slate-400 text-sm mb-5">{t.skip_confirm_title}</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-700 rounded-xl text-white font-medium text-sm">{t.btn_cancel}</button>
+          <button onClick={onConfirm} className="flex-1 py-3 bg-amber-500 rounded-xl text-white font-bold text-sm">{t.skip_confirm_ok}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function HabitList({ habits, onSelect, onAdd, onAddLog }) {
   const { t } = useLang()
   const [showArchived, setShowArchived] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [quickHabitId, setQuickHabitId] = useState(null)
+  const [skipHabitId, setSkipHabitId] = useState(null)
 
   const active = habits.filter(h => !h.archived)
   const archived = habits.filter(h => h.archived)
 
+  const todayStr = toDateStr(new Date())
   const avgPct = active.length === 0 ? 0
     : Math.round(active.reduce((s, h) => s + Math.min(sumRecorded(h.logs) / h.goalTotal, 1), 0) / active.length * 100)
   const doneCount = active.filter(h => sumRecorded(h.logs) >= h.goalTotal).length
+  const unrecordedToday = active.filter(h => !h.logs.some(l => l.date === todayStr))
+
+  const quickHabit = habits.find(h => h.id === quickHabitId) ?? null
+  const skipHabit = habits.find(h => h.id === skipHabitId) ?? null
 
   function periodLabel(habit) {
     if (habit.period === 'week') return t.period_week
@@ -186,66 +208,77 @@ export default function HabitList({ habits, onSelect, onAdd }) {
     return t.greeting_evening
   }
 
+  function handleSkipConfirm() {
+    if (!skipHabit) return
+    onAddLog(skipHabitId, { date: todayStr, value: null, status: 'skipped', note: '' })
+    setSkipHabitId(null)
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {quickHabit && <HomeQuickSheet habit={quickHabit} onRecord={entry => onAddLog(quickHabitId, entry)} onClose={() => setQuickHabitId(null)} />}
+      {skipHabit && <SkipConfirmModal habit={skipHabit} onConfirm={handleSkipConfirm} onClose={() => setSkipHabitId(null)} />}
 
       {/* ── Header ── */}
-      <div className="relative overflow-hidden px-5 pt-14 pb-8">
+      <div className="relative overflow-hidden px-5 pt-14 pb-6">
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-violet-600/20 blur-3xl pointer-events-none" />
         <div className="absolute top-8 -left-20 w-48 h-48 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none" />
-
         <div className="relative">
-          {/* Top row: brand + help + language switcher */}
+          {/* Top row */}
           <div className="flex items-center justify-between mb-1">
             <p className="text-violet-400/80 text-xs font-semibold tracking-[0.2em] uppercase">Habit Tracker</p>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowHelp(true)}
-                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-slate-400 text-sm font-bold hover:bg-white/10 hover:text-white transition-colors flex items-center justify-center"
-              >
+              <button onClick={() => setShowHelp(true)}
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-slate-400 text-sm font-bold hover:bg-white/10 hover:text-white transition-colors flex items-center justify-center">
                 ?
               </button>
               <LanguageSwitcher />
             </div>
           </div>
-
-          <p className="text-slate-400 text-sm mb-1">{getGreeting()}</p>
+          <p className="text-slate-400 text-sm mb-0.5">{getGreeting()}</p>
           <QuoteWidget t={t} />
           <h1 className="text-3xl font-black text-white tracking-tight mt-3">{t.page_title}</h1>
 
+          {/* Summary card */}
           {active.length > 0 && (
-            <div className="flex gap-4 mt-4">
-              <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 flex-1">
-                <p className="text-xs text-slate-400 mb-0.5">{t.stat_count}</p>
-                <p className="text-white font-bold text-lg leading-none">
-                  {active.length}
-                  {t.stat_count_unit && <span className="text-slate-400 text-xs font-normal ml-1">{t.stat_count_unit}</span>}
-                </p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 flex-1">
-                <p className="text-xs text-slate-400 mb-0.5">{t.stat_avg}</p>
-                <p className="text-violet-300 font-bold text-lg leading-none">
-                  {avgPct}
-                  <span className="text-slate-400 text-xs font-normal ml-0.5">%</span>
-                </p>
-              </div>
-              {doneCount > 0 && (
-                <div className="bg-green-500/10 border border-green-500/20 rounded-2xl px-4 py-2.5 flex-1">
-                  <p className="text-xs text-green-400/70 mb-0.5">{t.stat_done}</p>
-                  <p className="text-green-400 font-bold text-lg leading-none">
-                    {doneCount}
-                    {t.stat_done_unit && <span className="text-green-400/60 text-xs font-normal ml-1">{t.stat_done_unit}</span>}
-                  </p>
+            <div className="mt-3 bg-white/5 border border-white/8 rounded-2xl px-4 py-3">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <p className="text-xs text-slate-500 mb-0.5">{t.summary_active}</p>
+                  <p className="text-white font-bold text-lg leading-none">{active.length}</p>
                 </div>
-              )}
+                <div className="w-px bg-slate-800" />
+                <div className="flex-1">
+                  <p className="text-xs text-slate-500 mb-0.5">{t.summary_avg}</p>
+                  <p className="text-violet-300 font-bold text-lg leading-none">{avgPct}%</p>
+                </div>
+                {doneCount > 0 && (
+                  <>
+                    <div className="w-px bg-slate-800" />
+                    <div className="flex-1">
+                      <p className="text-xs text-green-400/70 mb-0.5">{t.stat_done}</p>
+                      <p className="text-green-400 font-bold text-lg leading-none">{doneCount}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              {unrecordedToday.length > 0 ? (
+                <p className="text-xs text-amber-400/80 mt-2 pt-2 border-t border-white/5">
+                  {t.summary_no_record_msg}
+                </p>
+              ) : active.length > 0 ? (
+                <p className="text-xs text-green-400/70 mt-2 pt-2 border-t border-white/5">
+                  {t.summary_all_done_msg}
+                </p>
+              ) : null}
             </div>
           )}
         </div>
       </div>
 
       {/* ── Habit list ── */}
-      <div className="flex-1 px-5 pb-8">
+      <div className="flex-1 px-5 pb-24">
         {active.length === 0 && archived.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <div className="relative mb-6">
@@ -260,7 +293,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
               </div>
             </div>
             <p className="text-white font-semibold text-base">{t.empty_title}</p>
-            <p className="text-slate-500 text-sm mt-1 mb-5">{t.empty_desc}</p>
+            <p className="text-slate-500 text-sm mt-1 mb-5 max-w-xs">{t.empty_desc}</p>
             <button onClick={onAdd}
               className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-2xl text-white font-bold text-sm shadow-lg shadow-violet-500/25 active:scale-95 transition-transform">
               {t.empty_btn}
@@ -283,6 +316,7 @@ export default function HabitList({ habits, onSelect, onAdd }) {
               const isDone = recorded >= habit.goalTotal
               const remaining = Math.max(habit.goalTotal - recorded, 0)
               const streak = calcStreak(habit.logs)
+              const recordedToday = habit.logs.some(l => l.date === todayStr)
 
               return (
                 <button key={habit.id} onClick={() => onSelect(habit.id)}
@@ -302,7 +336,6 @@ export default function HabitList({ habits, onSelect, onAdd }) {
                           </span>
                         </div>
                       </div>
-
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-white font-bold text-base truncate">{habit.type}</p>
@@ -332,10 +365,30 @@ export default function HabitList({ habits, onSelect, onAdd }) {
                         style={{ width: `${pct}%` }} />
                     </div>
 
-                    <div className="flex justify-between mt-1.5">
+                    <div className="flex justify-between mt-1.5 mb-3">
                       <span className="text-xs text-slate-600">{recorded.toLocaleString()} {habit.unit} {t.label_achieved}</span>
                       {!isDone && <span className="text-xs text-slate-600">{t.label_remaining} {remaining.toLocaleString()} {habit.unit}</span>}
                     </div>
+
+                    {/* Quick action buttons */}
+                    {!isDone && (
+                      <div className="flex gap-2 border-t border-white/5 pt-3">
+                        <button
+                          onClick={e => { e.stopPropagation(); setQuickHabitId(habit.id) }}
+                          className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
+                            recordedToday
+                              ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                              : 'bg-violet-500 text-white shadow-md shadow-violet-500/25'
+                          }`}>
+                          {t.card_record_btn}
+                        </button>
+                        <button
+                          onClick={e => { e.stopPropagation(); setSkipHabitId(habit.id) }}
+                          className="flex-1 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-800/60 border border-slate-700/50 transition-all active:scale-95">
+                          {t.card_skip_btn}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </button>
               )
@@ -388,12 +441,20 @@ export default function HabitList({ habits, onSelect, onAdd }) {
         )}
       </div>
 
-      {/* ── Floating add button ── */}
+      {/* ── FAB ── */}
       <div className="fixed bottom-8 right-5">
-        <button onClick={onAdd}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-light shadow-xl shadow-violet-500/40 active:scale-95 transition-transform">
-          +
-        </button>
+        {active.length <= 2 ? (
+          <button onClick={onAdd}
+            className="flex items-center gap-2 pr-4 pl-3 h-14 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-xl shadow-violet-500/40 active:scale-95 transition-transform">
+            <span className="text-2xl font-light leading-none">+</span>
+            <span className="text-sm font-bold">{t.fab_label}</span>
+          </button>
+        ) : (
+          <button onClick={onAdd}
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-light shadow-xl shadow-violet-500/40 active:scale-95 transition-transform">
+            +
+          </button>
+        )}
       </div>
     </div>
   )
