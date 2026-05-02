@@ -64,6 +64,8 @@ export const translations = {
     stat_goal: '目標',
     stat_progress: '進捗',
     stat_done_label: '達成！',
+    stat_days_left: '残り日数',
+    stat_days_left_unit: '日',
 
     // WeekChart
     chart_week: '直近7日',
@@ -224,6 +226,8 @@ export const translations = {
     stat_goal: 'goal',
     stat_progress: 'progress',
     stat_done_label: 'Done!',
+    stat_days_left: 'Days left',
+    stat_days_left_unit: 'd',
 
     // WeekChart
     chart_week: 'Last 7 days',
@@ -387,6 +391,8 @@ export const translations = {
     stat_goal: 'เป้าหมาย',
     stat_progress: 'ความคืบหน้า',
     stat_done_label: 'สำเร็จ!',
+    stat_days_left: 'วันเหลือ',
+    stat_days_left_unit: 'วัน',
 
     // WeekChart
     chart_week: '7 วันล่าสุด',

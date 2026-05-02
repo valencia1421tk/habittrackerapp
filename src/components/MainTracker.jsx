@@ -289,6 +289,11 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const percentDisplay = Math.min(Math.round(percent * 100), 100)
   const isDone = recorded >= goalTotal
   const isArchived = !!habit.archived
+  const periodDays = habit.periodDays ?? (habit.period === 'week' ? 7 : habit.period === 'month' ? 30 : 0)
+  const remainingDays = Math.max(
+    Math.ceil((habit.createdAt + periodDays * 86400000 - Date.now()) / 86400000),
+    0
+  )
 
   const selectedDate = dateMode === 'today' ? today : dateMode === 'yesterday' ? yesterday : customDate
 
@@ -399,12 +404,14 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
             )}
           </div>
         </div>
-        <div className="flex gap-6 mt-2 text-center">
+        <div className="flex gap-3 mt-2 text-center">
           <div><p className="text-xs text-slate-500">{t.stat_achieved2}</p><p className="text-white font-bold">{recorded.toLocaleString()}<span className="text-slate-400 text-xs ml-1">{unit}</span></p></div>
           <div className="w-px bg-slate-800" />
           <div><p className="text-xs text-slate-500">{t.stat_goal}</p><p className="text-white font-bold">{goalTotal.toLocaleString()}<span className="text-slate-400 text-xs ml-1">{unit}</span></p></div>
           <div className="w-px bg-slate-800" />
           <div><p className="text-xs text-slate-500">{t.stat_progress}</p><p className="text-violet-400 font-bold">{percentDisplay}%</p></div>
+          <div className="w-px bg-slate-800" />
+          <div><p className="text-xs text-slate-500">{t.stat_days_left}</p><p className="text-white font-bold">{remainingDays}<span className="text-slate-400 text-xs ml-1">{t.stat_days_left_unit}</span></p></div>
         </div>
       </div>
 
