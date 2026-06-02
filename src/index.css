@@ -13,3 +13,31 @@
     padding-right: env(safe-area-inset-right);
   }
 }
+
+/* ── Checkpoint milestone animations ─────────────────────────────── */
+@keyframes checkpoint-pill {
+  0%   { opacity: 0; transform: translateY(-16px) scale(0.8); }
+  15%  { opacity: 1; transform: translateY(0) scale(1.08); }
+  25%  { transform: translateY(0) scale(1); }
+  72%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.9); }
+}
+
+@keyframes checkpoint-banner {
+  0%   { transform: translateY(-100%); opacity: 1; }
+  12%  { transform: translateY(0); opacity: 1; }
+  78%  { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+@keyframes checkpoint-burst {
+  0%   { opacity: 0; transform: scale(0.4); }
+  18%  { opacity: 1; transform: scale(1.06); }
+  28%  { transform: scale(1); }
+  72%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+.checkpoint-pill   { animation: checkpoint-pill   2.5s ease-in-out forwards; }
+.checkpoint-banner { animation: checkpoint-banner 2.5s ease-in-out forwards; }
+.checkpoint-burst  { animation: checkpoint-burst  2.5s ease-in-out forwards; }

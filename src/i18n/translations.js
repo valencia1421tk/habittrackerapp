@@ -163,6 +163,10 @@ export const translations = {
     setup_hint_amount: '1日の目安量を入力してください',
     setup_hint_days: 'カスタム期間の日数を入力してください',
 
+    // Checkpoint animations
+    checkpoint_msg: (pct) => `${pct}% 達成！`,
+    checkpoint_sub: '素晴らしい！このまま続けよう',
+
     // Presets (label shown on button; also stored as habit.type)
     presets: [
       { label: '筋トレ', unit: '回' },
@@ -377,6 +381,10 @@ export const translations = {
     setup_hint_amount: 'Enter a daily target amount',
     setup_hint_days: 'Enter the number of days',
 
+    // Checkpoint animations
+    checkpoint_msg: (pct) => `${pct}% reached!`,
+    checkpoint_sub: 'Keep it up!',
+
     // Presets
     presets: [
       { label: 'Strength', unit: 'reps' },
@@ -584,6 +592,10 @@ export const translations = {
     setup_hint_type: 'กรุณาใส่ชื่อนิสัย',
     setup_hint_amount: 'กรุณาใส่เป้าหมายต่อวัน',
     setup_hint_days: 'กรุณาใส่จำนวนวัน',
+
+    // Checkpoint animations
+    checkpoint_msg: (pct) => `${pct}% สำเร็จ!`,
+    checkpoint_sub: 'ยอดเยี่ยม! สู้ต่อไป',
 
     // Presets
     presets: [

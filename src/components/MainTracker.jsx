@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { sumRecorded } from '../hooks/useHabits'
 import { useLang } from '../i18n/LanguageContext'
 import RecordForm from './RecordForm'
@@ -265,6 +265,43 @@ function LogItem({ log, unit, onUpdate, onDelete, t }) {
   )
 }
 
+// ── Checkpoint animation overlay ─────────────────────────────────
+function CheckpointEffect({ checkpoint, t }) {
+  if (!checkpoint) return null
+  const { pct, type } = checkpoint
+  const emoji = pct === 100 ? '🎉' : pct >= 70 ? '🔥' : pct >= 40 ? '⭐' : '🎯'
+  const label = t.checkpoint_msg(pct)
+  const sub = t.checkpoint_sub
+
+  if (type === 'pill') return (
+    <div className="fixed top-16 inset-x-0 flex justify-center z-50 pointer-events-none">
+      <div className="checkpoint-pill px-5 py-2.5 bg-violet-500 rounded-full text-white font-bold text-sm shadow-lg shadow-violet-500/40">
+        {emoji} {label}
+      </div>
+    </div>
+  )
+
+  if (type === 'banner') return (
+    <div className="fixed top-0 inset-x-0 z-50 pointer-events-none checkpoint-banner">
+      <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-4 text-center shadow-lg">
+        <p className="text-white font-black text-lg">{emoji} {label}</p>
+        <p className="text-violet-200 text-xs mt-0.5">{sub}</p>
+      </div>
+    </div>
+  )
+
+  // burst
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div className="checkpoint-burst bg-slate-900/90 backdrop-blur-sm border border-violet-500/40 rounded-3xl px-10 py-7 text-center shadow-2xl shadow-violet-500/30">
+        <div className="text-5xl mb-2">{emoji}</div>
+        <p className="text-white font-black text-2xl">{label}</p>
+        <p className="text-violet-300 text-sm mt-1">{sub}</p>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ───────────────────────────────────────────────
 export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog, onBack, onDelete, onArchive, onRenewSame, onRenewSetup }) {
   const { t } = useLang()
@@ -275,6 +312,21 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [archiveConfirm, setArchiveConfirm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
+  const [checkpoint, setCheckpoint] = useState(null)
+  const prevPctRef = useRef(percentDisplay)
+
+  useEffect(() => {
+    const prev = prevPctRef.current
+    prevPctRef.current = percentDisplay
+    for (let m = 100; m >= 10; m -= 10) {
+      if (prev < m && percentDisplay >= m) {
+        const types = ['pill', 'banner', 'burst']
+        setCheckpoint({ pct: m, type: types[(m / 10 - 1) % 3] })
+        const id = setTimeout(() => setCheckpoint(null), 2500)
+        return () => clearTimeout(id)
+      }
+    }
+  }, [percentDisplay])
 
   const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
   const allLogs = [...logs, ...(habit.inheritedLogs || [])]
@@ -285,10 +337,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const isDone = recorded >= goalTotal
   const isArchived = !!habit.archived
   const periodDays = habit.periodDays ?? (habit.period === 'week' ? 7 : habit.period === 'month' ? 30 : 0)
-  const remainingDays = Math.max(
-    Math.ceil((habit.createdAt + periodDays * 86400000 - Date.now()) / 86400000),
-    0
-  )
+  const remainingDays = Math.ceil((habit.createdAt + periodDays * 86400000 - Date.now()) / 86400000)
 
   function handleSelectDate(date) {
     setShowCalendar(false)
@@ -296,6 +345,9 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* Checkpoint animation */}
+      <CheckpointEffect checkpoint={checkpoint} t={t} />
+
       {/* Delete confirm */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6">
@@ -388,7 +440,7 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
           <div className="w-px bg-slate-800" />
           <div><p className="text-xs text-slate-500">{t.stat_progress}</p><p className="text-violet-400 font-bold">{percentDisplay}%</p></div>
           <div className="w-px bg-slate-800" />
-          <div><p className="text-xs text-slate-500">{t.stat_days_left}</p><p className="text-white font-bold">{remainingDays}<span className="text-slate-400 text-xs ml-1">{t.stat_days_left_unit}</span></p></div>
+          <div><p className="text-xs text-slate-500">{t.stat_days_left}</p><p className={`font-bold ${remainingDays < 0 ? 'text-red-400' : 'text-white'}`}>{remainingDays}<span className="text-slate-400 text-xs ml-1">{t.stat_days_left_unit}</span></p></div>
         </div>
       </div>
 
