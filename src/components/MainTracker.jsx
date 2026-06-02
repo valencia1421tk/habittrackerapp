@@ -313,6 +313,18 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
   const [archiveConfirm, setArchiveConfirm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [checkpoint, setCheckpoint] = useState(null)
+
+  const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
+  const allLogs = [...logs, ...(habit.inheritedLogs || [])]
+  const recorded = sumRecorded(logs)
+  const remaining = Math.max(goalTotal - recorded, 0)
+  const percent = recorded / goalTotal
+  const percentDisplay = Math.min(Math.round(percent * 100), 100)
+  const isDone = recorded >= goalTotal
+  const isArchived = !!habit.archived
+  const periodDays = habit.periodDays ?? (habit.period === 'week' ? 7 : habit.period === 'month' ? 30 : 0)
+  const remainingDays = Math.ceil((habit.createdAt + periodDays * 86400000 - Date.now()) / 86400000)
+
   const prevPctRef = useRef(percentDisplay)
 
   useEffect(() => {
@@ -327,17 +339,6 @@ export default function MainTracker({ habit, onAddLog, onUpdateLog, onDeleteLog,
       }
     }
   }, [percentDisplay])
-
-  const { type, unit, goalTotal, logs, dailyAmount, weeklyDays } = habit
-  const allLogs = [...logs, ...(habit.inheritedLogs || [])]
-  const recorded = sumRecorded(logs)
-  const remaining = Math.max(goalTotal - recorded, 0)
-  const percent = recorded / goalTotal
-  const percentDisplay = Math.min(Math.round(percent * 100), 100)
-  const isDone = recorded >= goalTotal
-  const isArchived = !!habit.archived
-  const periodDays = habit.periodDays ?? (habit.period === 'week' ? 7 : habit.period === 'month' ? 30 : 0)
-  const remainingDays = Math.ceil((habit.createdAt + periodDays * 86400000 - Date.now()) / 86400000)
 
   function handleSelectDate(date) {
     setShowCalendar(false)
